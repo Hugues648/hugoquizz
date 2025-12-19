@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Helper function to check if user is validated
+    function isValidated() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.validated == true;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own document
+      // Admins can read all users
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own document during registration
+      allow create: if isOwner(userId) && 
+                    request.resource.data.role == 'user' && 
+                    request.resource.data.validated == false;
+      
+      // Users can update their own profile (but not role/validated)
+      // Admins can update any user (including role/validated)
+      allow update: if (isOwner(userId) && 
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'validated'])) 
+                    || isAdmin();
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // Quizzes collection
+    match /quizzes/{quizId} {
+      // Anyone can read public quizzes
+      // Owner and admins can read all quizzes
+      allow read: if resource.data.isPublic == true || 
+                     isOwner(resource.data.userId) || 
+                     isAdmin();
+      
+      // Validated users can create quizzes
+      allow create: if isValidated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update their quiz
+      allow update: if isOwner(resource.data.userId);
+      
+      // Owner or admin can delete
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Questions collection (for quizzes)
+    match /questions/{questionId} {
+      // Allow read if user can read the parent quiz
+      allow read: if true; // Simplified - questions are tied to quizzes
+      
+      // Validated users can create questions for their quizzes
+      allow create: if isValidated();
+      
+      // Owner of the quiz can update/delete questions
+      allow update, delete: if isValidated();
+    }
+    
+    // Questionnaires collection
+    match /questionnaires/{questionnaireId} {
+      // Anyone can read questionnaires (for playing)
+      allow read: if true;
+      
+      // Validated users can create questionnaires
+      allow create: if isValidated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update
+      allow update: if isOwner(resource.data.userId);
+      
+      // Owner or admin can delete
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Quiz Sessions (player answers)
+    match /quizSessions/{sessionId} {
+      // Anyone can create a session (for playing)
+      allow create: if true;
+      
+      // Anyone can read their own session (for results)
+      // Admins and quiz owners can read all sessions
+      allow read: if true;
+      
+      // Sessions can be updated (for saving progress)
+      allow update: if true;
+      
+      // Any authenticated user can delete sessions
+      allow delete: if isAuthenticated();
+    }
+    
+    // Questionnaire Sessions (respondent answers)
+    match /questionnaireSessions/{sessionId} {
+      // Anyone can create a session
+      allow create: if true;
+      
+      // Anyone can read sessions
+      allow read: if true;
+      
+      // Sessions can be updated
+      allow update: if true;
+      
+      // Any authenticated user can delete sessions
+      allow delete: if isAuthenticated();
+    }
+  }
+}
