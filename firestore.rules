@@ -31,9 +31,9 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin();
       
       // Users can create their own document during registration
+      // validated can be true (auto-validated) since admin validation is removed
       allow create: if isOwner(userId) && 
-                    request.resource.data.role == 'user' && 
-                    request.resource.data.validated == false;
+                    request.resource.data.role == 'user';
       
       // Users can update their own profile (but not role/validated)
       // Admins can update any user (including role/validated)
@@ -108,6 +108,21 @@ service cloud.firestore {
       allow delete: if isAuthenticated();
     }
     
+    // Live Quiz Sessions (real-time multiplayer quiz)
+    match /liveQuizSessions/{sessionId} {
+      // Anyone can read live sessions (for joining and playing)
+      allow read: if true;
+      
+      // Authenticated users can create live sessions (hosts)
+      allow create: if isAuthenticated();
+      
+      // Anyone can update live sessions (for joining, submitting answers)
+      allow update: if true;
+      
+      // Authenticated users can delete live sessions
+      allow delete: if isAuthenticated();
+    }
+    
     // Questionnaire Sessions (respondent answers)
     match /questionnaireSessions/{sessionId} {
       // Anyone can create a session
@@ -121,6 +136,338 @@ service cloud.firestore {
       
       // Any authenticated user can delete sessions
       allow delete: if isAuthenticated();
+    }
+    
+    // ==================== EVENTS ====================
+    
+    // Events collection
+    match /events/{eventId} {
+      // Anyone can read public events (for viewing via shared link)
+      allow read: if true;
+      
+      // Authenticated users can create events
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Only owner can update their event
+      allow update: if isOwner(resource.data.userId);
+      
+      // Owner or admin can delete
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Gifts collection (for events)
+    match /gifts/{giftId} {
+      // Anyone can read gifts (for viewing via shared link)
+      allow read: if true;
+      
+      // Authenticated users can create gifts for their events
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update/delete gifts
+      allow update, delete: if isAuthenticated();
+    }
+    
+    // Gift Selections (when visitors select gifts)
+    match /giftSelections/{selectionId} {
+      // Anyone can create a selection (visitors)
+      allow create: if true;
+      
+      // Anyone can read selections (for transparency)
+      allow read: if true;
+      
+      // Selections can be updated (for adding messages, etc.)
+      allow update: if true;
+      
+      // Event owners can delete selections (reset)
+      allow delete: if isAuthenticated();
+    }
+    
+    // Pending Guests (self-registered guests awaiting approval)
+    match /pendingGuests/{pendingId} {
+      // Anyone can create a pending guest (visitors registering via event page)
+      allow create: if true;
+      
+      // Anyone can read pending guests (for checking existing registrations by fingerprint)
+      allow read: if true;
+      
+      // Authenticated users can update (for approving/rejecting)
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete pending guests
+      allow delete: if isAuthenticated();
+    }
+    
+    // Event Visitors (registered visitors for events)
+    match /eventVisitors/{visitorId} {
+      // Anyone can create a visitor registration (visitors entering their name)
+      allow create: if true;
+      
+      // Anyone can read visitors (event owners need to see them)
+      allow read: if true;
+      
+      // Visitors can be updated (for marking PDF as downloaded, etc.)
+      allow update: if true;
+      
+      // Authenticated users can delete visitors
+      allow delete: if isAuthenticated();
+    }
+    
+    // Guests (invited guests for events)
+    match /guests/{guestId} {
+      // Anyone can read guests (for QR code scanning)
+      allow read: if true;
+      
+      // Authenticated users can create guests
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update guests (for presence status)
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete guests
+      allow delete: if isAuthenticated();
+    }
+    
+    // Event Tables (tables for ceremony seating)
+    match /eventTables/{tableId} {
+      // Anyone can read tables
+      allow read: if true;
+      
+      // Authenticated users can create tables
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update tables
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete tables
+      allow delete: if isAuthenticated();
+    }
+
+    // Room Layouts (plan de salle - forme, entrées, scènes)
+    match /roomLayouts/{layoutId} {
+      // Anyone can read room layouts
+      allow read: if true;
+      
+      // Authenticated users can create room layouts
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update room layouts
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete room layouts
+      allow delete: if isAuthenticated();
+    }
+
+    // Event Programs (programmes/plannings pour événements)
+    match /eventPrograms/{programId} {
+      // Anyone can read programs (for guests via share link)
+      allow read: if true;
+      
+      // Authenticated users can create programs for their events
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update programs
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete programs
+      allow delete: if isAuthenticated();
+    }
+
+    // Event Menus (menus pour événements)
+    match /eventMenus/{menuId} {
+      // Anyone can read menus (for guests via share link)
+      allow read: if true;
+      
+      // Authenticated users can create menus for their events
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update menus
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete menus
+      allow delete: if isAuthenticated();
+    }
+
+    // Planning Share Links (liens de partage pour programmes/menus)
+    match /planningShareLinks/{linkId} {
+      // Anyone can read share links (for guests accessing via QR/link)
+      allow read: if true;
+      
+      // Authenticated users can create share links
+      allow create: if isAuthenticated();
+      
+      // Authenticated users can update share links
+      allow update: if isAuthenticated();
+      
+      // Authenticated users can delete share links
+      allow delete: if isAuthenticated();
+    }
+
+    // Event Tasks (tâches de l'événement)
+    match /eventTasks/{taskId} {
+      // Authenticated users can read their own tasks
+      allow read: if isAuthenticated();
+      
+      // Authenticated users can create tasks
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Owner can update their tasks
+      allow update: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Owner can delete their tasks
+      allow delete: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+    }
+
+    // Notifications (rappels et notifications)
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && 
+                  resource.data.userId == request.auth.uid;
+      
+      // Authenticated users can create notifications for themselves
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+    }
+
+    // Guestbook Messages (livre d'or)
+    match /guestbookMessages/{messageId} {
+      // Anyone can read guestbook messages
+      allow read: if true;
+      
+      // Anyone can create a message (visitors can leave messages)
+      allow create: if true;
+      
+      // Anyone can update messages
+      allow update: if true;
+      
+      // Authenticated users can delete messages (event owners)
+      allow delete: if isAuthenticated();
+    }
+    
+    // Quiz Music (musiques pour les quiz)
+    match /quizMusic/{musicId} {
+      // Anyone can read music (for playing)
+      allow read: if true;
+      
+      // Authenticated users can manage music (admin feature)
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Site Settings (configuration globale du site)
+    match /settings/{settingId} {
+      // Anyone can read settings (for logos, branding, etc.)
+      allow read: if true;
+      
+      // Only admins can modify settings
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ==================== CHAT SUPPORT ====================
+    
+    // Chat Conversations
+    match /chatConversations/{conversationId} {
+      // Users can read their own conversations
+      // Admins can read all conversations
+      allow read: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      
+      // Authenticated users can create their own conversations
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own conversations (limited fields)
+      // Admins can update any conversation
+      allow update: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      
+      // Only admins can delete conversations
+      allow delete: if isAdmin();
+      
+      // Chat Messages subcollection
+      match /messages/{messageId} {
+        // Users can read messages from their conversations
+        // Admins can read all messages
+        allow read: if isAuthenticated();
+        
+        // Users and admins can create messages
+        allow create: if isAuthenticated();
+        
+        // Messages cannot be updated or deleted
+        allow update, delete: if isAdmin();
+      }
+    }
+    
+    // Terms Notification Jobs (internal use by Cloud Functions)
+    match /termsNotificationJobs/{jobId} {
+      // Only Cloud Functions can access (no client access)
+      allow read, write: if false;
+    }
+
+    // ==================== SERVICES MARKETPLACE ====================
+
+    // Identity verification requests (to become a service provider)
+    match /serviceVerifications/{verificationId} {
+      // Owner can read their own request; admins can read all
+      allow read: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+
+      // Validated users can submit a verification request for themselves
+      allow create: if isValidated() &&
+                    request.resource.data.userId == request.auth.uid;
+
+      // Only admins can review (approve/reject) requests
+      allow update: if isAdmin();
+
+      // Owner or admin can delete
+      allow delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    // Services (published offerings)
+    match /services/{serviceId} {
+      // Anyone can read public (approved) services; owner & admin can read all
+      allow read: if resource.data.isPublic == true ||
+                     isOwner(resource.data.userId) ||
+                     isAdmin();
+
+      // Validated users can create a service for themselves
+      allow create: if isValidated() &&
+                    request.resource.data.userId == request.auth.uid;
+
+      // Owner can update their own service content.
+      // Admins can update any service (moderation: status/isPublic/adminMessage).
+      // Anyone may increment the public view counter (views only, +1) on a public service.
+      allow update: if isOwner(resource.data.userId) || isAdmin() ||
+                    (
+                      resource.data.isPublic == true &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'updatedAt']) &&
+                      request.resource.data.views == resource.data.views + 1
+                    );
+
+      // Owner or admin can delete
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // Service contact messages (sent by visitors to a service owner)
+    match /serviceMessages/{messageId} {
+      // Owner of the service can read their messages; admins can read all
+      allow read: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
+
+      // Anyone (including non-authenticated visitors) can send a message
+      allow create: if true;
+
+      // Owner can update (mark as read); admins too
+      allow update: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
+
+      // Owner or admin can delete
+      allow delete: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
     }
   }
 }

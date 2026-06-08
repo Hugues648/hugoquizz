@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { getQuestionnaireById, updateQuestionnaire } from '../services/firestore'
 import { 
@@ -25,19 +26,19 @@ const QUESTION_TYPES = {
   RATING: 'rating'
 }
 
-// Labels et icônes pour chaque type
-const QUESTION_TYPE_CONFIG = {
-  [QUESTION_TYPES.YES_NO]: { label: 'Oui / Non', icon: FiToggleLeft, color: 'green', options: ['Oui', 'Non'] },
-  [QUESTION_TYPES.TRUE_FALSE]: { label: 'Vrai / Faux', icon: FiCheck, color: 'blue', options: ['Vrai', 'Faux'] },
-  [QUESTION_TYPES.SINGLE_CHOICE]: { label: 'Choix unique', icon: FiCheckCircle, color: 'purple', hasOptions: true },
-  [QUESTION_TYPES.MULTIPLE_CHOICE]: { label: 'Cases à cocher', icon: FiList, color: 'orange', hasOptions: true },
-  [QUESTION_TYPES.DROPDOWN]: { label: 'Liste déroulante', icon: FiChevronDown, color: 'cyan', hasOptions: true },
-  [QUESTION_TYPES.SHORT_TEXT]: { label: 'Texte court', icon: FiAlignLeft, color: 'gray', hasPlaceholder: true },
-  [QUESTION_TYPES.LONG_TEXT]: { label: 'Texte long', icon: FiAlignLeft, color: 'gray', hasPlaceholder: true },
-  [QUESTION_TYPES.NUMBER]: { label: 'Nombre', icon: FiHash, color: 'indigo' },
-  [QUESTION_TYPES.EMAIL]: { label: 'Email', icon: FiMail, color: 'pink', hasPlaceholder: true },
-  [QUESTION_TYPES.DATE]: { label: 'Date', icon: FiCalendar, color: 'amber' },
-  [QUESTION_TYPES.RATING]: { label: 'Évaluation (1-5)', icon: FiStar, color: 'yellow' }
+// Configuration for each question type (labels are fetched dynamically via getQuestionTypeConfig)
+const QUESTION_TYPE_CONFIG_BASE = {
+  [QUESTION_TYPES.YES_NO]: { labelKey: 'questionnaire.questionTypes.yesNo', icon: FiToggleLeft, color: 'green', optionsKeys: ['common.yes', 'common.no'] },
+  [QUESTION_TYPES.TRUE_FALSE]: { labelKey: 'questionnaire.questionTypes.trueFalse', icon: FiCheck, color: 'blue', optionsKeys: ['common.true', 'common.false'] },
+  [QUESTION_TYPES.SINGLE_CHOICE]: { labelKey: 'questionnaire.questionTypes.singleChoice', icon: FiCheckCircle, color: 'purple', hasOptions: true },
+  [QUESTION_TYPES.MULTIPLE_CHOICE]: { labelKey: 'questionnaire.questionTypes.multipleChoice', icon: FiList, color: 'orange', hasOptions: true },
+  [QUESTION_TYPES.DROPDOWN]: { labelKey: 'questionnaire.questionTypes.dropdown', icon: FiChevronDown, color: 'cyan', hasOptions: true },
+  [QUESTION_TYPES.SHORT_TEXT]: { labelKey: 'questionnaire.questionTypes.shortText', icon: FiAlignLeft, color: 'gray', hasPlaceholder: true },
+  [QUESTION_TYPES.LONG_TEXT]: { labelKey: 'questionnaire.questionTypes.longText', icon: FiAlignLeft, color: 'gray', hasPlaceholder: true },
+  [QUESTION_TYPES.NUMBER]: { labelKey: 'questionnaire.questionTypes.number', icon: FiHash, color: 'indigo' },
+  [QUESTION_TYPES.EMAIL]: { labelKey: 'questionnaire.questionTypes.email', icon: FiMail, color: 'pink', hasPlaceholder: true },
+  [QUESTION_TYPES.DATE]: { labelKey: 'questionnaire.questionTypes.date', icon: FiCalendar, color: 'amber' },
+  [QUESTION_TYPES.RATING]: { labelKey: 'questionnaire.questionTypes.rating', icon: FiStar, color: 'yellow' }
 }
 
 // Types qui supportent les conditions (branchement)
@@ -49,9 +50,21 @@ const CONDITIONAL_TYPES = [
 ]
 
 const EditQuestionnaire = () => {
+  const { t } = useTranslation()
   const { questionnaireId } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
+  
+  // Helper to get translated question type config
+  const getQuestionTypeConfig = (type) => {
+    const base = QUESTION_TYPE_CONFIG_BASE[type]
+    if (!base) return { label: type, icon: null, color: 'gray' }
+    return {
+      ...base,
+      label: t(base.labelKey, base.labelKey.split('.').pop()),
+      options: base.optionsKeys ? base.optionsKeys.map(k => t(k)) : undefined
+    }
+  }
   
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -70,13 +83,13 @@ const EditQuestionnaire = () => {
     try {
       const data = await getQuestionnaireById(questionnaireId)
       if (!data) {
-        toast.error('Questionnaire introuvable')
+        toast.error(t('messages.error.questionnaireNotFound'))
         navigate('/dashboard')
         return
       }
 
       if (data.userId !== user.uid) {
-        toast.error('Non autorisé')
+        toast.error(t('messages.error.unauthorized'))
         navigate('/dashboard')
         return
       }
@@ -101,7 +114,7 @@ const EditQuestionnaire = () => {
       }
     } catch (error) {
       console.error('Fetch error:', error)
-      toast.error('Erreur de chargement')
+      toast.error(t('messages.error.loading'))
       navigate('/dashboard')
     } finally {
       setLoading(false)
@@ -138,7 +151,7 @@ const EditQuestionnaire = () => {
     const duplicated = {
       ...original,
       id: newId,
-      text: `${original.text} (copie)`,
+      text: `${original.text} (${t('common.copy')})`,
       isConditional: false,
       conditions: [],
       defaultNext: null
@@ -149,13 +162,13 @@ const EditQuestionnaire = () => {
     newQuestions.splice(originalIndex + 1, 0, duplicated)
     setQuestions(newQuestions)
     setExpandedQuestion(newId)
-    toast.success('Question dupliquée')
+    toast.success(t('messages.success.questionDuplicated'))
   }
 
   // Supprimer une question
   const removeQuestion = (questionId) => {
     if (questions.length <= 1) {
-      toast.error('Minimum 1 question requise')
+      toast.error(t('messages.validation.minOneQuestion'))
       return
     }
 
@@ -183,7 +196,7 @@ const EditQuestionnaire = () => {
 
       // Si on change le type, réinitialiser les options et conditions
       if (field === 'type') {
-        const config = QUESTION_TYPE_CONFIG[value]
+        const config = getQuestionTypeConfig(value)
         
         if (config.options) {
           updated.options = config.options
@@ -226,7 +239,7 @@ const EditQuestionnaire = () => {
     setQuestions(questions.map(q => {
       if (q.id !== questionId) return q
       if (q.options.length <= 2) {
-        toast.error('Minimum 2 options requises')
+        toast.error(t('messages.validation.minOptions'))
         return q
       }
       const newOptions = q.options.filter((_, i) => i !== optionIndex)
@@ -273,7 +286,7 @@ const EditQuestionnaire = () => {
 
   // Obtenir les options disponibles pour une question conditionnelle
   const getAvailableOptions = (question) => {
-    const config = QUESTION_TYPE_CONFIG[question.type]
+    const config = getQuestionTypeConfig(question.type)
     if (config.options) {
       return config.options
     }
@@ -285,27 +298,27 @@ const EditQuestionnaire = () => {
     e.preventDefault()
 
     if (!formData.title.trim()) {
-      toast.error('Le titre est requis')
+      toast.error(t('messages.validation.titleRequired'))
       return
     }
 
     if (questions.length === 0) {
-      toast.error('Ajoutez au moins une question')
+      toast.error(t('messages.validation.minQuestions'))
       return
     }
 
     const emptyQuestions = questions.filter(q => !q.text.trim())
     if (emptyQuestions.length > 0) {
-      toast.error('Toutes les questions doivent avoir un texte')
+      toast.error(t('messages.validation.questionTextRequired'))
       setExpandedQuestion(emptyQuestions[0].id)
       return
     }
 
     // Vérifier les options pour les types qui en nécessitent
     for (const q of questions) {
-      const config = QUESTION_TYPE_CONFIG[q.type]
+      const config = getQuestionTypeConfig(q.type)
       if (config.hasOptions && (!q.options || q.options.length < 2)) {
-        toast.error(`La question "${q.text}" doit avoir au moins 2 options`)
+        toast.error(t('messages.validation.minOptions'))
         setExpandedQuestion(q.id)
         return
       }
@@ -330,18 +343,18 @@ const EditQuestionnaire = () => {
         }))
       })
 
-      toast.success('Questionnaire mis à jour !')
+      toast.success(t('messages.success.questionnaireUpdated'))
       navigate('/dashboard')
     } catch (error) {
       console.error('Update error:', error)
-      toast.error('Erreur lors de la mise à jour')
+      toast.error(t('messages.error.updating'))
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="Chargement..." />
+    return <LoadingSpinner fullScreen text={t('common.loading')} />
   }
 
   return (
@@ -354,42 +367,42 @@ const EditQuestionnaire = () => {
             className="text-gray-600 hover:text-gray-800 flex items-center gap-2 mb-4"
           >
             <FiArrowLeft />
-            Retour au tableau de bord
+            {t('common.backToDashboard')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-800">Modifier le questionnaire</h1>
-          <p className="text-gray-500 mt-2">Modifiez les questions et les conditions de branchement</p>
+          <h1 className="text-3xl font-bold text-gray-800">{t('questionnaire.edit')}</h1>
+          <p className="text-gray-500 mt-2">{t('questionnaire.editDescription')}</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* Informations générales */}
           <div className="card p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Informations générales</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('questionnaire.generalInfo')}</h2>
             
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Titre du questionnaire *
+                  {t('questionnaire.title')} *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="input"
-                  placeholder="Ex: Enquête de satisfaction"
+                  placeholder={t('questionnaire.placeholders.title')}
                   maxLength={100}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (optionnel)
+                  {t('questionnaire.descriptionOptional')}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="input resize-none"
                   rows={3}
-                  placeholder="Décrivez brièvement votre questionnaire..."
+                  placeholder={t('questionnaire.placeholders.description')}
                   maxLength={500}
                 />
               </div>
@@ -400,7 +413,7 @@ const EditQuestionnaire = () => {
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                Questions ({questions.length})
+                {t('questionnaire.questions')} ({questions.length})
               </h2>
               <button
                 type="button"
@@ -408,14 +421,14 @@ const EditQuestionnaire = () => {
                 className="btn btn-primary flex items-center gap-2"
               >
                 <FiPlus />
-                Ajouter une question
+                {t('questionnaire.addQuestion')}
               </button>
             </div>
 
             <div className="space-y-4">
               {questions.map((question, index) => {
                 const isExpanded = expandedQuestion === question.id
-                const config = QUESTION_TYPE_CONFIG[question.type]
+                const config = getQuestionTypeConfig(question.type)
                 const Icon = config.icon
                 const canBeConditional = CONDITIONAL_TYPES.includes(question.type)
                 const availableOptions = getAvailableOptions(question)
@@ -442,18 +455,18 @@ const EditQuestionnaire = () => {
 
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-800 truncate">
-                          {question.text || <span className="text-gray-400 italic">Question sans texte</span>}
+                          {question.text || <span className="text-gray-400 italic">{t('questionnaire.questionWithoutText')}</span>}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-gray-500">{config.label}</span>
                           {question.isConditional && (
                             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full flex items-center gap-1">
                               <FiGitBranch size={10} />
-                              Conditionnelle
+                              {t('questionnaire.conditional')}
                             </span>
                           )}
                           {question.required && (
-                            <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Obligatoire</span>
+                            <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{t('questionnaire.requiredShort')}</span>
                           )}
                         </div>
                       </div>
@@ -485,30 +498,33 @@ const EditQuestionnaire = () => {
                         {/* Texte de la question */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Texte de la question *
+                            {t('questionnaire.questionText')} *
                           </label>
                           <input
                             type="text"
                             value={question.text}
                             onChange={(e) => updateQuestion(question.id, 'text', e.target.value)}
                             className="input"
-                            placeholder="Entrez votre question..."
+                            placeholder={t('questionnaire.placeholders.questionText')}
                           />
                         </div>
 
                         {/* Type de question */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Type de réponse
+                            {t('questionnaire.responseType')}
                           </label>
                           <select
                             value={question.type}
                             onChange={(e) => updateQuestion(question.id, 'type', e.target.value)}
                             className="input"
                           >
-                            {Object.entries(QUESTION_TYPE_CONFIG).map(([type, cfg]) => (
-                              <option key={type} value={type}>{cfg.label}</option>
-                            ))}
+                            {Object.keys(QUESTION_TYPE_CONFIG_BASE).map((type) => {
+                              const cfg = getQuestionTypeConfig(type)
+                              return (
+                                <option key={type} value={type}>{cfg.label}</option>
+                              )
+                            })}
                           </select>
                         </div>
 
@@ -516,14 +532,14 @@ const EditQuestionnaire = () => {
                         {config.hasPlaceholder && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Placeholder (texte d'aide)
+                              {t('questionnaire.placeholderLabel')}
                             </label>
                             <input
                               type="text"
                               value={question.placeholder || ''}
                               onChange={(e) => updateQuestion(question.id, 'placeholder', e.target.value)}
                               className="input"
-                              placeholder="Ex: Entrez votre réponse..."
+                              placeholder={t('questionnaire.placeholders.placeholder')}
                             />
                           </div>
                         )}
@@ -532,7 +548,7 @@ const EditQuestionnaire = () => {
                         {config.hasOptions && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Options de réponse
+                              {t('questionnaire.responseOptions')}
                             </label>
                             <div className="space-y-2">
                               {question.options.map((option, optIndex) => (
@@ -542,7 +558,7 @@ const EditQuestionnaire = () => {
                                     value={option}
                                     onChange={(e) => updateOption(question.id, optIndex, e.target.value)}
                                     className="input flex-1"
-                                    placeholder={`Option ${optIndex + 1}`}
+                                    placeholder={`${t('questionnaire.placeholders.option')} ${optIndex + 1}`}
                                   />
                                   <button
                                     type="button"
@@ -559,7 +575,7 @@ const EditQuestionnaire = () => {
                                 className="text-purple-600 text-sm font-medium hover:text-purple-700 flex items-center gap-1"
                               >
                                 <FiPlus size={14} />
-                                Ajouter une option
+                                {t('questionnaire.addOption')}
                               </button>
                             </div>
                           </div>
@@ -578,7 +594,7 @@ const EditQuestionnaire = () => {
                               question.required ? 'translate-x-6' : ''
                             }`} />
                           </button>
-                          <span className="text-sm text-gray-700">Question obligatoire</span>
+                          <span className="text-sm text-gray-700">{t('questionnaire.required')}</span>
                         </div>
 
                         {/* Question conditionnelle */}
@@ -598,14 +614,14 @@ const EditQuestionnaire = () => {
                               </button>
                               <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
                                 <FiGitBranch className="text-blue-500" />
-                                Question conditionnelle (branchement)
+                                {t('questionnaire.conditionalBranching')}
                               </span>
                             </div>
 
                             {question.isConditional && (
                               <div className="bg-blue-50 rounded-lg p-4 space-y-3">
                                 <p className="text-sm text-blue-700 mb-3">
-                                  Définissez où aller selon la réponse :
+                                  {t('questionnaire.defineWhereToGo')}
                                 </p>
                                 
                                 {availableOptions.map((option, optIndex) => {
@@ -613,23 +629,23 @@ const EditQuestionnaire = () => {
                                   return (
                                     <div key={optIndex} className="flex items-center gap-2 bg-white rounded-lg p-3">
                                       <span className="text-sm font-medium text-gray-700 min-w-0 flex-shrink-0">
-                                        Si "{option}" →
+                                        {t('questionnaire.ifAnswer', { answer: option })}
                                       </span>
                                       <select
                                         value={condition?.goToQuestion || ''}
                                         onChange={(e) => updateCondition(question.id, option, e.target.value)}
                                         className="input flex-1"
                                       >
-                                        <option value="">Question suivante (par défaut)</option>
+                                        <option value="">{t('questionnaire.nextQuestionDefault')}</option>
                                         {questions
                                           .filter(q => q.id !== question.id)
                                           .map((q, i) => (
                                             <option key={q.id} value={q.id}>
-                                              Q{questions.findIndex(qq => qq.id === q.id) + 1}: {q.text?.substring(0, 40) || 'Sans texte'}...
+                                              Q{questions.findIndex(qq => qq.id === q.id) + 1}: {q.text?.substring(0, 40) || t('questionnaire.noText')}...
                                             </option>
                                           ))
                                         }
-                                        <option value="end">🏁 Fin du questionnaire</option>
+                                        <option value="end">🏁 {t('questionnaire.endOfQuestionnaire')}</option>
                                       </select>
                                     </div>
                                   )
@@ -637,23 +653,23 @@ const EditQuestionnaire = () => {
 
                                 <div className="flex items-center gap-2 bg-white rounded-lg p-3 mt-2">
                                   <span className="text-sm font-medium text-gray-700 flex-shrink-0">
-                                    Par défaut →
+                                    {t('questionnaire.byDefault')}
                                   </span>
                                   <select
                                     value={question.defaultNext || ''}
                                     onChange={(e) => updateQuestion(question.id, 'defaultNext', e.target.value || null)}
                                     className="input flex-1"
                                   >
-                                    <option value="">Question suivante</option>
+                                    <option value="">{t('questionnaire.nextQuestion')}</option>
                                     {questions
                                       .filter(q => q.id !== question.id)
                                       .map((q) => (
                                         <option key={q.id} value={q.id}>
-                                          Q{questions.findIndex(qq => qq.id === q.id) + 1}: {q.text?.substring(0, 40) || 'Sans texte'}...
+                                          Q{questions.findIndex(qq => qq.id === q.id) + 1}: {q.text?.substring(0, 40) || t('questionnaire.noText')}...
                                         </option>
                                       ))
                                     }
-                                    <option value="end">🏁 Fin du questionnaire</option>
+                                    <option value="end">🏁 {t('questionnaire.endOfQuestionnaire')}</option>
                                   </select>
                                 </div>
                               </div>
@@ -669,7 +685,7 @@ const EditQuestionnaire = () => {
                             className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-sm"
                           >
                             <FiCopy size={14} />
-                            Dupliquer
+                            {t('common.duplicate')}
                           </button>
                           <button
                             type="button"
@@ -677,7 +693,7 @@ const EditQuestionnaire = () => {
                             className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm"
                           >
                             <FiTrash2 size={14} />
-                            Supprimer
+                            {t('common.delete')}
                           </button>
                         </div>
                       </div>
@@ -688,14 +704,14 @@ const EditQuestionnaire = () => {
 
               {questions.length === 0 && (
                 <div className="card p-8 text-center">
-                  <p className="text-gray-500 mb-4">Aucune question ajoutée</p>
+                  <p className="text-gray-500 mb-4">{t('questionnaire.noQuestionsAdded')}</p>
                   <button
                     type="button"
                     onClick={addQuestion}
                     className="btn btn-primary"
                   >
                     <FiPlus className="mr-2" />
-                    Ajouter la première question
+                    {t('questionnaire.addFirstQuestion')}
                   </button>
                 </div>
               )}
@@ -709,7 +725,7 @@ const EditQuestionnaire = () => {
               onClick={() => navigate('/dashboard')}
               className="btn btn-ghost"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -719,12 +735,12 @@ const EditQuestionnaire = () => {
               {saving ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Enregistrement...
+                  {t('common.saving')}
                 </>
               ) : (
                 <>
                   <FiSave />
-                  Enregistrer les modifications
+                  {t('common.saveChanges')}
                 </>
               )}
             </button>

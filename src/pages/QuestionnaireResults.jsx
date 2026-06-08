@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getQuestionnaireSession } from '../services/firestore'
 import { FiArrowLeft, FiHome, FiCheck } from 'react-icons/fi'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -7,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 const QuestionnaireResults = () => {
   const { sessionId } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState(null)
 
@@ -31,7 +33,7 @@ const QuestionnaireResults = () => {
   }
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="Chargement des résultats..." />
+    return <LoadingSpinner fullScreen text={t('questionnaireResults.loading', 'Chargement des résultats...')} />
   }
 
   if (!session) return null
@@ -48,7 +50,7 @@ const QuestionnaireResults = () => {
             <FiArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-white">Vos Réponses</h1>
+            <h1 className="text-2xl font-bold text-white">{t('questionnaireResults.title', 'Vos Réponses')}</h1>
             <p className="text-white/70">{session.questionnaireTitle}</p>
           </div>
         </div>
@@ -58,18 +60,18 @@ const QuestionnaireResults = () => {
           <div className="text-4xl mb-4">📋</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">{session.respondentName}</h2>
           <p className="text-gray-500">
-            Questionnaire complété le {session.completedAt?.toDate?.()?.toLocaleDateString('fr-FR') || 'Date inconnue'}
+            {t('questionnaireResults.completedOn', 'Questionnaire complété le')} {session.completedAt?.toDate?.()?.toLocaleDateString('fr-FR') || t('questionnaireResults.unknownDate', 'Date inconnue')}
           </p>
           
           <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full">
             <FiCheck />
-            {session.answers?.length || 0} réponses enregistrées
+            {session.answers?.length || 0} {t('questionnaireResults.answersRecorded', 'réponses enregistrées')}
           </div>
         </div>
 
         {/* Answers Detail */}
         <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Détail des réponses</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">{t('questionnaireResults.responseDetails', 'Détail des réponses')}</h3>
           
           <div className="space-y-4">
             {session.answers?.map((answer, index) => (
@@ -81,14 +83,14 @@ const QuestionnaireResults = () => {
                   {index + 1}. {answer.questionText}
                 </p>
                 <p className="text-purple-600 font-medium bg-purple-50 inline-block px-3 py-1 rounded-lg">
-                  {answer.answer || 'Pas de réponse'}
+                  {answer.answer || t('questionnaireResults.noAnswer', 'Pas de réponse')}
                 </p>
               </div>
             ))}
 
             {(!session.answers || session.answers.length === 0) && (
               <p className="text-center text-gray-500 py-8">
-                Aucune réponse enregistrée
+                {t('questionnaireResults.noAnswersRecorded', 'Aucune réponse enregistrée')}
               </p>
             )}
           </div>
@@ -101,7 +103,7 @@ const QuestionnaireResults = () => {
             className="w-full btn btn-primary flex items-center justify-center gap-2"
           >
             <FiHome />
-            Retour à l'accueil
+            {t('questionnaireResults.backToHome', "Retour à l'accueil")}
           </Link>
         </div>
       </div>

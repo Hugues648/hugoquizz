@@ -1,0 +1,22 @@
+# Robots.txt pour HugoQuiz
+# https://hugoquiz.com
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /pricing
+Allow: /cgu
+Allow: /privacy
+
+# Pages protégées - ne pas indexer
+Disallow: /dashboard
+Disallow: /quiz/
+Disallow: /questionnaire/
+Disallow: /event/
+Disallow: /profile
+Disallow: /settings
+Disallow: /admin
+
+# Référence au sitemap
+Sitemap: https://hugoquiz.com/sitemap.xml

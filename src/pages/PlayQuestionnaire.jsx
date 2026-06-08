@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getQuestionnaireById, createQuestionnaireSession, updateQuestionnaireSession } from '../services/firestore'
 import { FiArrowRight, FiArrowLeft, FiCheck, FiUser, FiStar, FiMail, FiCalendar, FiHash } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
+import FloatingLanguageSelector from '../components/FloatingLanguageSelector'
 
 // Types de questions
 const QUESTION_TYPES = {
@@ -21,6 +23,7 @@ const QUESTION_TYPES = {
 }
 
 const PlayQuestionnaire = () => {
+  const { t } = useTranslation()
   const { questionnaireId } = useParams()
   const navigate = useNavigate()
 
@@ -41,13 +44,13 @@ const PlayQuestionnaire = () => {
     try {
       const data = await getQuestionnaireById(questionnaireId)
       if (!data) {
-        toast.error('Questionnaire introuvable')
+        toast.error(t('questionnaire.notFound'))
         navigate('/')
         return
       }
 
       if (!data.questions?.length) {
-        toast.error('Ce questionnaire n\'a pas de questions')
+        toast.error(t('questionnaire.noQuestions'))
         navigate('/')
         return
       }
@@ -55,7 +58,7 @@ const PlayQuestionnaire = () => {
       setQuestionnaire(data)
     } catch (error) {
       console.error('Fetch error:', error)
-      toast.error('Erreur de chargement')
+      toast.error(t('common.loadError'))
     } finally {
       setLoading(false)
     }
@@ -63,7 +66,7 @@ const PlayQuestionnaire = () => {
 
   const startQuestionnaire = async () => {
     if (!respondentName.trim()) {
-      toast.error('Veuillez entrer votre nom')
+      toast.error(t('questionnaire.enterName'))
       return
     }
 
@@ -79,7 +82,7 @@ const PlayQuestionnaire = () => {
       setGameState('playing')
     } catch (error) {
       console.error('Start error:', error)
-      toast.error('Erreur de démarrage')
+      toast.error(t('questionnaire.startError'))
     }
   }
 
@@ -186,11 +189,11 @@ const PlayQuestionnaire = () => {
   const handleNext = async () => {
     if (!validateCurrentAnswer()) {
       if (currentQuestion.type === QUESTION_TYPES.EMAIL) {
-        toast.error('Veuillez entrer une adresse email valide')
+        toast.error(t('questionnaire.invalidEmail'))
       } else if (currentQuestion.type === QUESTION_TYPES.MULTIPLE_CHOICE) {
-        toast.error('Veuillez sélectionner au moins une option')
+        toast.error(t('questionnaire.selectAtLeastOne'))
       } else {
-        toast.error('Cette question est obligatoire')
+        toast.error(t('questionnaire.requiredQuestion'))
       }
       return
     }
@@ -242,20 +245,21 @@ const PlayQuestionnaire = () => {
   }
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="Chargement..." />
+    return <LoadingSpinner fullScreen text={t('common.loading')} />
   }
 
   // Écran d'introduction
   if (gameState === 'intro') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 flex items-center justify-center p-4">
+        <FloatingLanguageSelector position="top-right" />
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-fade-in">
           <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
             <span className="text-3xl">📋</span>
           </div>
           
           <h1 className="text-2xl font-bold text-gray-800 mb-2">{questionnaire.title}</h1>
-          <p className="text-gray-500 mb-6">{questionnaire.description || 'Répondez aux questions'}</p>
+          <p className="text-gray-500 mb-6">{questionnaire.description || t('questionnaire.play.description')}</p>
           
           <div className="text-sm text-gray-500 mb-8">
             {questionnaire.questions.length} questions
@@ -264,14 +268,14 @@ const PlayQuestionnaire = () => {
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
               <FiUser className="inline mr-1" />
-              Votre nom
+              {t('questionnaire.play.yourName')}
             </label>
             <input
               type="text"
               value={respondentName}
               onChange={(e) => setRespondentName(e.target.value)}
               className="input"
-              placeholder="Entrez votre nom..."
+              placeholder={t('questionnaire.play.enterName')}
               maxLength={50}
               onKeyDown={(e) => e.key === 'Enter' && startQuestionnaire()}
             />
@@ -281,7 +285,7 @@ const PlayQuestionnaire = () => {
             onClick={startQuestionnaire}
             className="w-full btn btn-secondary flex items-center justify-center gap-2 text-lg py-4"
           >
-            Commencer
+            {t('questionnaire.play.start')}
             <FiArrowRight />
           </button>
         </div>
@@ -301,7 +305,7 @@ const PlayQuestionnaire = () => {
           <div className="mb-8">
             <div className="flex justify-between text-white text-sm mb-2">
               <span>{respondentName}</span>
-              <span>Question {questionPath.length} / {questionnaire.questions.length}</span>
+              <span>{t('questionnaire.play.questionOf', { current: questionPath.length, total: questionnaire.questions.length })}</span>
             </div>
             <div className="h-3 bg-white/20 rounded-full overflow-hidden">
               <div 
@@ -323,27 +327,27 @@ const PlayQuestionnaire = () => {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => handleAnswer('Oui')}
+                  onClick={() => handleAnswer(t('common.yes'))}
                   className={`p-6 rounded-2xl border-2 font-medium transition-all ${
-                    currentAnswer === 'Oui'
+                    currentAnswer === t('common.yes')
                       ? 'bg-green-500 border-green-500 text-white scale-105 shadow-lg'
                       : 'border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50'
                   }`}
                 >
                   <span className="text-4xl block mb-2">👍</span>
-                  Oui
+                  {t('common.yes')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAnswer('Non')}
+                  onClick={() => handleAnswer(t('common.no'))}
                   className={`p-6 rounded-2xl border-2 font-medium transition-all ${
-                    currentAnswer === 'Non'
+                    currentAnswer === t('common.no')
                       ? 'bg-red-500 border-red-500 text-white scale-105 shadow-lg'
                       : 'border-gray-200 text-gray-700 hover:border-red-300 hover:bg-red-50'
                   }`}
                 >
                   <span className="text-4xl block mb-2">👎</span>
-                  Non
+                  {t('common.no')}
                 </button>
               </div>
             )}
@@ -353,27 +357,27 @@ const PlayQuestionnaire = () => {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => handleAnswer('Vrai')}
+                  onClick={() => handleAnswer(t('common.true'))}
                   className={`p-6 rounded-2xl border-2 font-medium transition-all ${
-                    currentAnswer === 'Vrai'
+                    currentAnswer === t('common.true')
                       ? 'bg-green-500 border-green-500 text-white scale-105 shadow-lg'
                       : 'border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50'
                   }`}
                 >
                   <span className="text-4xl block mb-2">✓</span>
-                  Vrai
+                  {t('common.true')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAnswer('Faux')}
+                  onClick={() => handleAnswer(t('common.false'))}
                   className={`p-6 rounded-2xl border-2 font-medium transition-all ${
-                    currentAnswer === 'Faux'
+                    currentAnswer === t('common.false')
                       ? 'bg-red-500 border-red-500 text-white scale-105 shadow-lg'
                       : 'border-gray-200 text-gray-700 hover:border-red-300 hover:bg-red-50'
                   }`}
                 >
                   <span className="text-4xl block mb-2">✗</span>
-                  Faux
+                  {t('common.false')}
                 </button>
               </div>
             )}
@@ -408,7 +412,7 @@ const PlayQuestionnaire = () => {
             {/* ========== CASES À COCHER (Multiple Choice) ========== */}
             {currentQuestion.type === QUESTION_TYPES.MULTIPLE_CHOICE && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-500 mb-3">Plusieurs réponses possibles</p>
+                <p className="text-sm text-gray-500 mb-3">{t('questionnaire.play.multipleAnswersPossible')}</p>
                 {currentQuestion.options?.map((option, index) => {
                   const isSelected = Array.isArray(currentAnswer) && currentAnswer.includes(option)
                   return (
@@ -444,7 +448,7 @@ const PlayQuestionnaire = () => {
                   onChange={(e) => handleAnswer(e.target.value)}
                   className="input text-lg py-4"
                 >
-                  <option value="">-- Sélectionnez une option --</option>
+                  <option value="">{t('questionnaire.play.selectOption')}</option>
                   {currentQuestion.options?.map((option, index) => (
                     <option key={index} value={option}>{option}</option>
                   ))}
@@ -459,7 +463,7 @@ const PlayQuestionnaire = () => {
                 value={currentAnswer || ''}
                 onChange={(e) => handleAnswer(e.target.value)}
                 className="input text-lg py-4"
-                placeholder={currentQuestion.placeholder || 'Votre réponse...'}
+                placeholder={currentQuestion.placeholder || t('questionnaire.play.yourAnswer')}
                 maxLength={255}
               />
             )}
@@ -471,7 +475,7 @@ const PlayQuestionnaire = () => {
                 onChange={(e) => handleAnswer(e.target.value)}
                 className="input resize-none text-lg"
                 rows={5}
-                placeholder={currentQuestion.placeholder || 'Votre réponse détaillée...'}
+                placeholder={currentQuestion.placeholder || t('questionnaire.play.yourDetailedAnswer')}
                 maxLength={2000}
               />
             )}
@@ -485,7 +489,7 @@ const PlayQuestionnaire = () => {
                   value={currentAnswer || ''}
                   onChange={(e) => handleAnswer(e.target.value)}
                   className="input text-lg py-4 pl-12"
-                  placeholder="Entrez un nombre..."
+                  placeholder={t('questionnaire.play.enterNumber')}
                 />
               </div>
             )}
@@ -549,7 +553,7 @@ const PlayQuestionnaire = () => {
                   className="btn btn-ghost flex items-center gap-2"
                 >
                   <FiArrowLeft />
-                  Précédent
+                  {t('questionnaire.play.previous')}
                 </button>
               )}
               <button
@@ -558,8 +562,8 @@ const PlayQuestionnaire = () => {
                 className="flex-1 btn btn-secondary flex items-center justify-center gap-2 text-lg py-4"
               >
                 {getNextQuestionIndex() === -1 || getNextQuestionIndex() >= questionnaire.questions.length 
-                  ? 'Terminer' 
-                  : 'Suivant'
+                  ? t('questionnaire.play.finish') 
+                  : t('questionnaire.play.next')
                 }
                 <FiArrowRight />
               </button>
@@ -580,14 +584,14 @@ const PlayQuestionnaire = () => {
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center animate-fade-in">
           <div className="text-7xl mb-6">🎉</div>
           
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Merci {respondentName} !</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('questionnaire.play.thanks', { name: respondentName })}</h1>
           <p className="text-gray-500 mb-8">
-            Vos réponses ont été enregistrées avec succès.
+            {t('questionnaire.play.responsesRecorded')}
           </p>
 
           {/* Résumé */}
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 mb-8 text-left">
-            <h3 className="font-bold text-purple-800 mb-4">📊 Résumé de vos réponses</h3>
+            <h3 className="font-bold text-purple-800 mb-4">📊 {t('questionnaire.play.summary')}</h3>
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {questionnaire.questions
                 .filter(q => answers[q.id] !== undefined)
@@ -603,7 +607,7 @@ const PlayQuestionnaire = () => {
             </div>
             <div className="mt-4 pt-4 border-t border-purple-200">
               <p className="text-sm text-purple-600">
-                <strong>{answeredQuestions}</strong> questions répondues
+                {t('questionnaire.play.questionsAnswered', { count: answeredQuestions })}
               </p>
             </div>
           </div>
@@ -613,14 +617,14 @@ const PlayQuestionnaire = () => {
               onClick={() => navigate(`/results/questionnaire/${sessionId}`)}
               className="w-full btn btn-secondary flex items-center justify-center gap-2"
             >
-              Voir le détail
+              {t('questionnaire.play.seeDetails')}
               <FiArrowRight />
             </button>
             <button
               onClick={() => navigate('/')}
               className="w-full btn btn-ghost text-gray-500"
             >
-              Retour à l'accueil
+              {t('common.backToHome')}
             </button>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getQuizById, createQuizSession, updateQuizSession } from '../services/firestore'
-import { FiPlay, FiClock, FiUsers, FiArrowRight, FiCheck, FiX, FiStar, FiHash, FiMail } from 'react-icons/fi'
+import { FiPlay, FiClock, FiUsers, FiArrowRight, FiCheck, FiX, FiStar, FiHash, FiMail, FiChevronUp, FiChevronDown } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
+import FloatingLanguageSelector from '../components/FloatingLanguageSelector'
 
 // Types de questions
 const QUESTION_TYPES = {
@@ -13,12 +15,14 @@ const QUESTION_TYPES = {
   DROPDOWN: 'dropdown',
   SHORT_TEXT: 'short_text',
   NUMBER: 'number',
-  RATING: 'rating'
+  RATING: 'rating',
+  PUZZLE: 'puzzle'
 }
 
 const PlayQuiz = () => {
   const { quizId } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [loading, setLoading] = useState(true)
   const [quiz, setQuiz] = useState(null)
@@ -30,6 +34,7 @@ const PlayQuiz = () => {
   const [textAnswer, setTextAnswer] = useState('')
   const [numberAnswer, setNumberAnswer] = useState('')
   const [ratingAnswer, setRatingAnswer] = useState(0)
+  const [puzzleOrder, setPuzzleOrder] = useState([]) // Pour puzzle
   const [timeLeft, setTimeLeft] = useState(0)
   const [score, setScore] = useState(0)
   const [answers, setAnswers] = useState([])
@@ -46,13 +51,13 @@ const PlayQuiz = () => {
     try {
       const quizData = await getQuizById(quizId)
       if (!quizData) {
-        toast.error('Quiz introuvable')
+        toast.error(t('quiz.notFound', 'Quiz introuvable'))
         navigate('/')
         return
       }
 
       if (!quizData.questions?.length) {
-        toast.error('Ce quiz n\'a pas de questions')
+        toast.error(t('quiz.noQuestions', 'Ce quiz n\'a pas de questions'))
         navigate('/')
         return
       }
@@ -67,7 +72,7 @@ const PlayQuiz = () => {
       setQuestions(orderedQuestions)
     } catch (error) {
       console.error('Fetch quiz error:', error)
-      toast.error('Erreur lors du chargement du quiz')
+      toast.error(t('quiz.loadError', 'Erreur lors du chargement du quiz'))
     } finally {
       setLoading(false)
     }
@@ -75,7 +80,7 @@ const PlayQuiz = () => {
 
   const startGame = async () => {
     if (!playerName.trim()) {
-      toast.error('Veuillez entrer votre nom')
+      toast.error(t('quiz.live.enterName', 'Veuillez entrer votre nom'))
       return
     }
 
@@ -94,7 +99,7 @@ const PlayQuiz = () => {
       setTimeLeft(questions[0].timeLimit || quiz.timePerQuestion || 30)
     } catch (error) {
       console.error('Start game error:', error)
-      toast.error('Erreur lors du démarrage')
+      toast.error(t('quiz.startError', 'Erreur lors du démarrage'))
     }
   }
 
@@ -129,8 +134,30 @@ const PlayQuiz = () => {
     setTextAnswer('')
     setNumberAnswer('')
     setRatingAnswer(0)
+    setPuzzleOrder([])
     setHasSubmitted(false)
     setShowCorrectAnswer(false)
+  }
+
+  // Initialiser l'ordre puzzle mélangé au début de chaque question puzzle
+  useEffect(() => {
+    if (gameState === 'playing' && currentQuestion?.type === QUESTION_TYPES.PUZZLE) {
+      // Mélanger les options pour le puzzle
+      const shuffled = [...currentQuestion.options].sort(() => Math.random() - 0.5)
+      setPuzzleOrder(shuffled)
+    }
+  }, [currentQuestionIndex, gameState])
+
+  // Déplacer un élément puzzle
+  const movePuzzleItem = (fromIndex, direction) => {
+    const toIndex = fromIndex + direction
+    if (toIndex < 0 || toIndex >= puzzleOrder.length) return
+    
+    const newOrder = [...puzzleOrder]
+    const temp = newOrder[fromIndex]
+    newOrder[fromIndex] = newOrder[toIndex]
+    newOrder[toIndex] = temp
+    setPuzzleOrder(newOrder)
   }
 
   // Vérifier si la réponse est correcte
@@ -148,13 +175,23 @@ const PlayQuiz = () => {
         return JSON.stringify(correctIds) === JSON.stringify(selectedIds)
       
       case QUESTION_TYPES.SHORT_TEXT:
-        return answer?.toLowerCase().trim() === question.correctAnswer?.toLowerCase().trim()
+        // Support pour plusieurs réponses séparées par des virgules
+        if (!question.correctAnswer || !answer) return false
+        const acceptedAnswers = question.correctAnswer.split(',').map(a => a.toLowerCase().trim())
+        return acceptedAnswers.includes(answer.toLowerCase().trim())
       
       case QUESTION_TYPES.NUMBER:
         return parseFloat(answer) === parseFloat(question.correctAnswer)
       
       case QUESTION_TYPES.RATING:
         return answer === question.correctRating
+      
+      case QUESTION_TYPES.PUZZLE:
+        // answer est un array d'options dans l'ordre du joueur
+        if (!answer || !Array.isArray(answer)) return false
+        const playerOrder = answer.map(opt => opt.id)
+        const correctOrder = question.puzzleOrder || question.options.map(opt => opt.id)
+        return JSON.stringify(playerOrder) === JSON.stringify(correctOrder)
       
       default:
         return false
@@ -178,6 +215,13 @@ const PlayQuiz = () => {
       
       case QUESTION_TYPES.RATING:
         return '⭐'.repeat(question.correctRating)
+      
+      case QUESTION_TYPES.PUZZLE:
+        const correctOrder = question.puzzleOrder || question.options.map(opt => opt.id)
+        return correctOrder.map((id, i) => {
+          const opt = question.options.find(o => o.id === id)
+          return `${i + 1}. ${opt?.text || ''}`
+        }).join(' → ')
       
       default:
         return ''
@@ -213,7 +257,7 @@ const PlayQuiz = () => {
       questionId: currentQuestion.id,
       questionText: currentQuestion.text,
       questionType: currentQuestion.type,
-      selectedAnswer: answerText || 'Pas de réponse',
+      selectedAnswer: answerText || t('quiz.live.noAnswer', 'Pas de réponse'),
       correctAnswer: getCorrectAnswerText(currentQuestion),
       isCorrect,
       timeSpent,
@@ -248,7 +292,7 @@ const PlayQuiz = () => {
   // Soumettre pour multiple choice
   const handleSubmitMultiple = () => {
     if (selectedMultiple.length === 0) {
-      toast.error('Sélectionnez au moins une réponse')
+      toast.error(t('quiz.selectAtLeastOne', 'Sélectionnez au moins une réponse'))
       return
     }
     submitAnswer(selectedMultiple)
@@ -257,7 +301,7 @@ const PlayQuiz = () => {
   // Soumettre réponse texte
   const handleSubmitText = () => {
     if (!textAnswer.trim()) {
-      toast.error('Entrez une réponse')
+      toast.error(t('quiz.enterAnswer', 'Entrez une réponse'))
       return
     }
     submitAnswer(textAnswer)
@@ -266,7 +310,7 @@ const PlayQuiz = () => {
   // Soumettre réponse nombre
   const handleSubmitNumber = () => {
     if (numberAnswer === '' || isNaN(numberAnswer)) {
-      toast.error('Entrez un nombre valide')
+      toast.error(t('quiz.enterValidNumber', 'Entrez un nombre valide'))
       return
     }
     submitAnswer(numberAnswer)
@@ -275,7 +319,7 @@ const PlayQuiz = () => {
   // Soumettre rating
   const handleSubmitRating = () => {
     if (ratingAnswer === 0) {
-      toast.error('Sélectionnez une note')
+      toast.error(t('quiz.selectRating', 'Sélectionnez une note'))
       return
     }
     submitAnswer(ratingAnswer)
@@ -332,42 +376,43 @@ const PlayQuiz = () => {
   }
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="Chargement du quiz..." />
+    return <LoadingSpinner fullScreen text={t('quiz.loading', 'Chargement du quiz...')} />
   }
 
   // Écran d'introduction
   if (gameState === 'intro') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+        <FloatingLanguageSelector position="top-right" />
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-fade-in">
           <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
             <FiPlay className="text-white text-3xl" />
           </div>
           
           <h1 className="text-2xl font-bold text-gray-800 mb-2">{quiz.title}</h1>
-          <p className="text-gray-500 mb-6">{quiz.description || 'Préparez-vous à jouer !'}</p>
+          <p className="text-gray-500 mb-6">{quiz.description || t('quiz.prepareToPlay', 'Préparez-vous à jouer !')}</p>
           
           <div className="flex justify-center gap-6 mb-8 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <FiClock className="text-purple-500" />
-              <span>{quiz.timePerQuestion}s / question</span>
+              <span>{quiz.timePerQuestion}s / {t('quiz.question', 'question')}</span>
             </div>
             <div className="flex items-center gap-2">
               <FiUsers className="text-purple-500" />
-              <span>{questions.length} questions</span>
+              <span>{questions.length} {t('quiz.questions', 'questions')}</span>
             </div>
           </div>
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-              Votre nom
+              {t('quiz.yourName', 'Votre nom')}
             </label>
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               className="input"
-              placeholder="Entrez votre nom..."
+              placeholder={t('quiz.enterNamePlaceholder', 'Entrez votre nom...')}
               maxLength={30}
               onKeyDown={(e) => e.key === 'Enter' && startGame()}
             />
@@ -378,7 +423,7 @@ const PlayQuiz = () => {
             className="w-full btn btn-primary flex items-center justify-center gap-2 text-lg py-4"
           >
             <FiPlay />
-            Commencer
+            {t('common.start', 'Commencer')}
           </button>
         </div>
       </div>
@@ -402,8 +447,8 @@ const PlayQuiz = () => {
           {/* Progress */}
           <div className="mb-4">
             <div className="flex justify-between text-white text-sm mb-1">
-              <span>Question {currentQuestionIndex + 1} / {questions.length}</span>
-              <span>{currentQuestion.points} points</span>
+              <span>{t('quiz.question', 'Question')} {currentQuestionIndex + 1} / {questions.length}</span>
+              <span>{currentQuestion.points} {t('quiz.points', 'points')}</span>
             </div>
             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
               <div 
@@ -435,15 +480,27 @@ const PlayQuiz = () => {
           <div className="bg-white rounded-3xl shadow-2xl p-8 mb-6 animate-fade-in">
             <div className="text-center">
               <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
-                {currentQuestion.type === QUESTION_TYPES.SINGLE_CHOICE && '🎯 Choix unique'}
-                {currentQuestion.type === QUESTION_TYPES.MULTIPLE_CHOICE && '☑️ Plusieurs réponses'}
-                {currentQuestion.type === QUESTION_TYPES.TRUE_FALSE && '✓✗ Vrai ou Faux'}
-                {currentQuestion.type === QUESTION_TYPES.DROPDOWN && '📋 Liste déroulante'}
-                {currentQuestion.type === QUESTION_TYPES.SHORT_TEXT && '📝 Réponse texte'}
-                {currentQuestion.type === QUESTION_TYPES.NUMBER && '🔢 Réponse numérique'}
-                {currentQuestion.type === QUESTION_TYPES.RATING && '⭐ Évaluation'}
+                {currentQuestion.type === QUESTION_TYPES.SINGLE_CHOICE && `🎯 ${t('quiz.questionTypes.singleChoice', 'Choix unique')}`}
+                {currentQuestion.type === QUESTION_TYPES.MULTIPLE_CHOICE && `☑️ ${t('quiz.questionTypes.multipleChoice', 'Plusieurs réponses')}`}
+                {currentQuestion.type === QUESTION_TYPES.TRUE_FALSE && `✓✗ ${t('quiz.questionTypes.trueFalse', 'Vrai ou Faux')}`}
+                {currentQuestion.type === QUESTION_TYPES.DROPDOWN && `📋 ${t('quiz.questionTypes.dropdown', 'Liste déroulante')}`}
+                {currentQuestion.type === QUESTION_TYPES.SHORT_TEXT && `📝 ${t('quiz.questionTypes.shortText', 'Réponse texte')}`}
+                {currentQuestion.type === QUESTION_TYPES.NUMBER && `🔢 ${t('quiz.questionTypes.number', 'Réponse numérique')}`}
+                {currentQuestion.type === QUESTION_TYPES.RATING && `⭐ ${t('quiz.questionTypes.rating', 'Évaluation')}`}
+                {currentQuestion.type === QUESTION_TYPES.PUZZLE && `🧩 ${t('quiz.puzzleReorder', 'Remettez dans l\'ordre')}`}
               </span>
               <h2 className="text-2xl font-bold text-gray-800">{currentQuestion.text}</h2>
+              
+              {/* Image de la question */}
+              {currentQuestion.imageUrl && (
+                <div className="mt-4">
+                  <img 
+                    src={currentQuestion.imageUrl} 
+                    alt="Question" 
+                    className="max-h-64 mx-auto rounded-xl shadow-lg object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -475,7 +532,7 @@ const PlayQuiz = () => {
           {/* ========== CASES À COCHER (Multiple) ========== */}
           {currentQuestion.type === QUESTION_TYPES.MULTIPLE_CHOICE && (
             <div>
-              <p className="text-white text-center mb-4">Cochez toutes les bonnes réponses</p>
+              <p className="text-white text-center mb-4">{t('quiz.checkAllCorrect', 'Cochez toutes les bonnes réponses')}</p>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {currentQuestion.options.map((option, index) => (
                   <button
@@ -498,7 +555,7 @@ const PlayQuiz = () => {
                   onClick={handleSubmitMultiple}
                   className="w-full btn btn-success py-4 text-lg"
                 >
-                  Valider ma réponse
+                  {t('quiz.validateAnswer', 'Valider ma réponse')}
                 </button>
               )}
             </div>
@@ -519,7 +576,7 @@ const PlayQuiz = () => {
                 disabled={hasSubmitted}
                 className="input text-lg py-4"
               >
-                <option value="">-- Sélectionnez une réponse --</option>
+                <option value="">{t('quiz.selectAnswer', '-- Sélectionnez une réponse --')}</option>
                 {currentQuestion.options.map((option) => (
                   <option key={option.id} value={option.id}>{option.text}</option>
                 ))}
@@ -528,7 +585,7 @@ const PlayQuiz = () => {
                 <p className={`mt-4 text-center font-bold ${
                   selectedAnswer?.isCorrect ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {selectedAnswer?.isCorrect ? '✓ Correct !' : `✗ La bonne réponse était : ${getCorrectAnswerText(currentQuestion)}`}
+                  {selectedAnswer?.isCorrect ? `✓ ${t('quiz.correct', 'Correct !')}` : `✗ ${t('quiz.correctAnswerWas', 'La bonne réponse était')} : ${getCorrectAnswerText(currentQuestion)}`}
                 </p>
               )}
             </div>
@@ -543,7 +600,7 @@ const PlayQuiz = () => {
                 onChange={(e) => setTextAnswer(e.target.value)}
                 disabled={hasSubmitted}
                 className="input text-lg py-4 mb-4"
-                placeholder="Tapez votre réponse..."
+                placeholder={t('quiz.typeYourAnswer', 'Tapez votre réponse...')}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmitText()}
                 autoFocus
               />
@@ -552,7 +609,7 @@ const PlayQuiz = () => {
                   onClick={handleSubmitText}
                   className="w-full btn btn-success py-4 text-lg"
                 >
-                  Valider
+                  {t('quiz.validate', 'Valider')}
                 </button>
               )}
               {showCorrectAnswer && (
@@ -560,8 +617,8 @@ const PlayQuiz = () => {
                   checkAnswer(currentQuestion, textAnswer) ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {checkAnswer(currentQuestion, textAnswer) 
-                    ? '✓ Correct !' 
-                    : `✗ La bonne réponse était : ${currentQuestion.correctAnswer}`
+                    ? `✓ ${t('quiz.correct', 'Correct !')}` 
+                    : `✗ ${t('quiz.correctAnswerWas', 'La bonne réponse était')} : ${currentQuestion.correctAnswer}`
                   }
                 </p>
               )}
@@ -579,7 +636,7 @@ const PlayQuiz = () => {
                   onChange={(e) => setNumberAnswer(e.target.value)}
                   disabled={hasSubmitted}
                   className="input text-lg py-4 pl-12 mb-4"
-                  placeholder="Entrez un nombre..."
+                  placeholder={t('quiz.enterNumber', 'Entrez un nombre...')}
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmitNumber()}
                   autoFocus
                 />
@@ -589,7 +646,7 @@ const PlayQuiz = () => {
                   onClick={handleSubmitNumber}
                   className="w-full btn btn-success py-4 text-lg"
                 >
-                  Valider
+                  {t('quiz.validate', 'Valider')}
                 </button>
               )}
               {showCorrectAnswer && (
@@ -597,8 +654,8 @@ const PlayQuiz = () => {
                   checkAnswer(currentQuestion, numberAnswer) ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {checkAnswer(currentQuestion, numberAnswer) 
-                    ? '✓ Correct !' 
-                    : `✗ La bonne réponse était : ${currentQuestion.correctAnswer}`
+                    ? `✓ ${t('quiz.correct', 'Correct !')}` 
+                    : `✗ ${t('quiz.correctAnswerWas', 'La bonne réponse était')} : ${currentQuestion.correctAnswer}`
                   }
                 </p>
               )}
@@ -607,18 +664,18 @@ const PlayQuiz = () => {
 
           {/* ========== RATING ========== */}
           {currentQuestion.type === QUESTION_TYPES.RATING && (
-            <div className="bg-white rounded-2xl p-6">
-              <div className="flex justify-center gap-4 mb-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6">
+              <div className="flex justify-center gap-1 sm:gap-4 mb-6">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     onClick={() => !hasSubmitted && setRatingAnswer(star)}
                     disabled={hasSubmitted}
-                    className={`p-4 transition-all ${
-                      ratingAnswer >= star ? 'text-yellow-400 scale-125' : 'text-gray-300 hover:text-yellow-300'
+                    className={`p-1 sm:p-4 transition-all ${
+                      ratingAnswer >= star ? 'text-yellow-400 scale-110 sm:scale-125' : 'text-gray-300 hover:text-yellow-300'
                     }`}
                   >
-                    <FiStar size={48} fill={ratingAnswer >= star ? 'currentColor' : 'none'} />
+                    <FiStar className="w-8 h-8 sm:w-12 sm:h-12" fill={ratingAnswer >= star ? 'currentColor' : 'none'} />
                   </button>
                 ))}
               </div>
@@ -627,7 +684,7 @@ const PlayQuiz = () => {
                   onClick={handleSubmitRating}
                   className="w-full btn btn-success py-4 text-lg"
                 >
-                  Valider
+                  {t('quiz.validate', 'Valider')}
                 </button>
               )}
               {showCorrectAnswer && (
@@ -635,10 +692,82 @@ const PlayQuiz = () => {
                   checkAnswer(currentQuestion, ratingAnswer) ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {checkAnswer(currentQuestion, ratingAnswer) 
-                    ? '✓ Correct !' 
-                    : `✗ La bonne réponse était : ${'⭐'.repeat(currentQuestion.correctRating)}`
+                    ? `✓ ${t('quiz.correct', 'Correct !')}` 
+                    : `✗ ${t('quiz.correctAnswerWas', 'La bonne réponse était')} : ${'⭐'.repeat(currentQuestion.correctRating)}`
                   }
                 </p>
+              )}
+            </div>
+          )}
+
+          {/* ========== PUZZLE - Remettre dans l'ordre ========== */}
+          {currentQuestion.type === QUESTION_TYPES.PUZZLE && (
+            <div className="bg-white rounded-2xl p-6">
+              <p className="text-center text-gray-600 mb-4">
+                🧩 {t('quiz.puzzleInstruction', 'Utilisez les flèches pour réordonner les éléments')}
+              </p>
+              <div className="space-y-3 mb-6">
+                {puzzleOrder.map((option, index) => {
+                  // Déterminer la couleur après soumission
+                  let itemClass = 'bg-gradient-to-r from-orange-100 to-amber-100 border-orange-300'
+                  if (showCorrectAnswer) {
+                    const correctOrder = currentQuestion.puzzleOrder || currentQuestion.options.map(o => o.id)
+                    if (correctOrder[index] === option.id) {
+                      itemClass = 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-400'
+                    } else {
+                      itemClass = 'bg-gradient-to-r from-red-100 to-pink-100 border-red-400'
+                    }
+                  }
+                  
+                  return (
+                    <div 
+                      key={option.id} 
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 ${itemClass} transition-all`}
+                    >
+                      <span className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-lg flex items-center justify-center font-bold">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 font-medium text-gray-800">{option.text}</span>
+                      {!hasSubmitted && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => movePuzzleItem(index, -1)}
+                            disabled={index === 0}
+                            className="p-2 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-30 transition-all"
+                          >
+                            <FiChevronUp className="text-gray-600" />
+                          </button>
+                          <button
+                            onClick={() => movePuzzleItem(index, 1)}
+                            disabled={index === puzzleOrder.length - 1}
+                            className="p-2 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-30 transition-all"
+                          >
+                            <FiChevronDown className="text-gray-600" />
+                          </button>
+                        </div>
+                      )}
+                      {showCorrectAnswer && (
+                        <span className="text-xl">
+                          {(currentQuestion.puzzleOrder || currentQuestion.options.map(o => o.id))[index] === option.id ? '✓' : '✗'}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              {!hasSubmitted && (
+                <button
+                  onClick={() => submitAnswer(puzzleOrder)}
+                  className="w-full btn btn-success py-4 text-lg"
+                >
+                  {t('quiz.validateOrder', 'Valider mon ordre')}
+                </button>
+              )}
+              {showCorrectAnswer && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm font-medium text-gray-700 mb-2">{t('quiz.correctOrder', 'Ordre correct')} :</p>
+                  <p className="text-gray-600">{getCorrectAnswerText(currentQuestion)}</p>
+                </div>
               )}
             </div>
           )}
@@ -649,8 +778,8 @@ const PlayQuiz = () => {
               answers[answers.length - 1]?.isCorrect ? 'text-green-300' : 'text-red-300'
             }`}>
               {answers[answers.length - 1]?.isCorrect 
-                ? `🎉 Correct ! +${answers[answers.length - 1]?.points} points` 
-                : '😔 Incorrect'
+                ? `🎉 ${t('quiz.correct', 'Correct')} ! +${answers[answers.length - 1]?.points} ${t('quiz.points', 'points')}` 
+                : `😔 ${t('quiz.incorrect', 'Incorrect')}`
               }
             </div>
           )}
@@ -672,20 +801,20 @@ const PlayQuiz = () => {
             {percentage >= 80 ? '🏆' : percentage >= 50 ? '👏' : '💪'}
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quiz terminé !</h1>
-          <p className="text-gray-500 mb-6">Bravo {playerName} !</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{t('quiz.live.quizEnded', 'Quiz terminé !')}</h1>
+          <p className="text-gray-500 mb-6">{t('quiz.bravo', 'Bravo')} {playerName} !</p>
 
           <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 mb-6">
             <div className="text-5xl font-bold text-purple-600 mb-2">{score}</div>
-            <div className="text-gray-500">points sur {totalPossible}</div>
+            <div className="text-gray-500">{t('quiz.points', 'points')} / {totalPossible}</div>
             <div className="mt-4 flex justify-center gap-8 text-sm">
               <div>
                 <div className="text-2xl font-bold text-green-600">{correctCount}</div>
-                <div className="text-gray-500">Correct{correctCount > 1 ? 's' : ''}</div>
+                <div className="text-gray-500">{t('quiz.correct', 'Correct')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-red-600">{questions.length - correctCount}</div>
-                <div className="text-gray-500">Incorrect{questions.length - correctCount > 1 ? 's' : ''}</div>
+                <div className="text-gray-500">{t('quiz.incorrect', 'Incorrect')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">{percentage}%</div>
@@ -696,14 +825,14 @@ const PlayQuiz = () => {
 
           {/* Résumé des réponses */}
           <div className="text-left mb-6 max-h-64 overflow-y-auto">
-            <h3 className="font-bold text-gray-700 mb-3">Détail des réponses :</h3>
+            <h3 className="font-bold text-gray-700 mb-3">{t('quiz.answerDetails', 'Détail des réponses')} :</h3>
             {answers.map((answer, index) => (
               <div key={index} className={`p-3 rounded-lg mb-2 ${
                 answer.isCorrect ? 'bg-green-50 border-l-4 border-green-500' : 'bg-red-50 border-l-4 border-red-500'
               }`}>
                 <p className="text-sm font-medium text-gray-700">{answer.questionText}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Votre réponse : <span className={answer.isCorrect ? 'text-green-600' : 'text-red-600'}>{answer.selectedAnswer}</span>
+                  {t('quiz.yourAnswer', 'Votre réponse')} : <span className={answer.isCorrect ? 'text-green-600' : 'text-red-600'}>{answer.selectedAnswer}</span>
                   {!answer.isCorrect && (
                     <span className="text-green-600 ml-2">→ {answer.correctAnswer}</span>
                   )}
@@ -726,13 +855,13 @@ const PlayQuiz = () => {
               className="w-full btn btn-primary flex items-center justify-center gap-2"
             >
               <FiPlay />
-              Rejouer
+              {t('quiz.replay', 'Rejouer')}
             </button>
             <button
               onClick={() => navigate('/')}
               className="w-full btn btn-ghost text-gray-500"
             >
-              Retour à l'accueil
+              {t('quiz.live.backToHome', 'Retour à l\'accueil')}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { getQuizById, getQuizSessionsByQuiz, deleteQuizSession } from '../services/firestore'
 import { FiArrowLeft, FiUser, FiCalendar, FiAward, FiCheck, FiX, FiChevronDown, FiChevronUp, FiEye, FiTrash2 } from 'react-icons/fi'
@@ -9,6 +10,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 const QuizResponses = () => {
   const { quizId } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [quiz, setQuiz] = useState(null)
@@ -25,14 +27,14 @@ const QuizResponses = () => {
       const quizData = await getQuizById(quizId)
       
       if (!quizData) {
-        toast.error('Quiz introuvable')
+        toast.error(t('messages.error.quizNotFound'))
         navigate('/dashboard')
         return
       }
 
       // Vérifier que l'utilisateur est le propriétaire
       if (quizData.userId !== user.uid) {
-        toast.error('Accès non autorisé')
+        toast.error(t('messages.error.unauthorized'))
         navigate('/dashboard')
         return
       }
@@ -43,7 +45,7 @@ const QuizResponses = () => {
       setSessions(sessionsData)
     } catch (error) {
       console.error('Fetch error:', error)
-      toast.error('Erreur lors du chargement')
+      toast.error(t('messages.error.loading'))
       navigate('/dashboard')
     } finally {
       setLoading(false)
@@ -70,17 +72,17 @@ const QuizResponses = () => {
     try {
       await deleteQuizSession(deleteModal.sessionId)
       setSessions(sessions.filter(s => s.id !== deleteModal.sessionId))
-      toast.success('Réponse supprimée')
+      toast.success(t('messages.success.responseDeleted'))
     } catch (error) {
       console.error('Delete error:', error)
-      toast.error('Erreur lors de la suppression')
+      toast.error(t('messages.error.deleting'))
     } finally {
       setDeleteModal({ show: false, sessionId: null, playerName: '' })
     }
   }
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="Chargement des réponses..." />
+    return <LoadingSpinner fullScreen text={t('quizResponses.loading', 'Chargement des réponses...')} />
   }
 
   return (
@@ -94,7 +96,7 @@ const QuizResponses = () => {
           <FiArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Réponses au Quiz</h1>
+          <h1 className="text-2xl font-bold text-white">{t('quizResponses.title', 'Réponses au Quiz')}</h1>
           <p className="text-white/70">{quiz?.title}</p>
         </div>
       </div>
@@ -107,7 +109,7 @@ const QuizResponses = () => {
               <FiUser className="text-white text-xl" />
             </div>
             <div>
-              <p className="text-white/70 text-sm">Participants</p>
+              <p className="text-white/70 text-sm">{t('quizResponses.participants', 'Participants')}</p>
               <p className="text-2xl font-bold text-white">{sessions.length}</p>
             </div>
           </div>
@@ -118,7 +120,7 @@ const QuizResponses = () => {
               <FiAward className="text-white text-xl" />
             </div>
             <div>
-              <p className="text-white/70 text-sm">Score moyen</p>
+              <p className="text-white/70 text-sm">{t('quizResponses.averageScore', 'Score moyen')}</p>
               <p className="text-2xl font-bold text-white">
                 {sessions.length > 0 
                   ? Math.round(sessions.reduce((sum, s) => sum + (s.score || 0), 0) / sessions.length)
@@ -134,7 +136,7 @@ const QuizResponses = () => {
               <FiCheck className="text-white text-xl" />
             </div>
             <div>
-              <p className="text-white/70 text-sm">Taux de réussite moyen</p>
+              <p className="text-white/70 text-sm">{t('quizResponses.averageSuccessRate', 'Taux de réussite moyen')}</p>
               <p className="text-2xl font-bold text-white">
                 {sessions.length > 0 
                   ? Math.round(sessions.reduce((sum, s) => {
@@ -154,16 +156,16 @@ const QuizResponses = () => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            Liste des participants ({sessions.length})
+            {t('quizResponses.participantsList', 'Liste des participants')} ({sessions.length})
           </h2>
         </div>
 
         {sessions.length === 0 ? (
           <div className="p-12 text-center">
             <FiUser className="text-6xl text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Aucune réponse pour le moment</p>
+            <p className="text-gray-500">{t('quizResponses.noResponses', 'Aucune réponse pour le moment')}</p>
             <p className="text-gray-400 text-sm mt-2">
-              Partagez votre quiz pour recevoir des réponses
+              {t('quizResponses.shareQuiz', 'Partagez votre quiz pour recevoir des réponses')}
             </p>
           </div>
         ) : (
@@ -199,7 +201,7 @@ const QuizResponses = () => {
                           {!hasAnswers ? (
                             <>
                               <p className="font-bold text-lg text-orange-500">0 pts</p>
-                              <p className="text-sm text-orange-500">Abandonné</p>
+                              <p className="text-sm text-orange-500">{t('quizResponses.abandoned', 'Abandonné')}</p>
                             </>
                           ) : (
                             <>
@@ -226,7 +228,7 @@ const QuizResponses = () => {
                   {expandedSession === session.id && (
                     <div className="px-5 pb-5 bg-gray-50">
                       <div className="border-t border-gray-200 pt-4">
-                        <h4 className="font-medium text-gray-700 mb-3">Détail des réponses</h4>
+                        <h4 className="font-medium text-gray-700 mb-3">{t('quizResponses.responseDetails', 'Détail des réponses')}</h4>
                         <div className="space-y-2">
                           {hasAnswers ? (
                             session.answers.map((answer, index) => (
@@ -244,11 +246,11 @@ const QuizResponses = () => {
                                     {index + 1}. {answer.questionText}
                                   </p>
                                   <p className={`text-sm mt-1 ${answer.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                                    Réponse : {answer.userAnswer}
+                                    {t('quizResponses.answer', 'Réponse')} : {answer.userAnswer}
                                   </p>
                                   {!answer.isCorrect && (
                                     <p className="text-sm text-gray-500 mt-1">
-                                      Bonne réponse : {answer.correctAnswer}
+                                      {t('quizResponses.correctAnswer', 'Bonne réponse')} : {answer.correctAnswer}
                                     </p>
                                   )}
                                 </div>
@@ -263,9 +265,9 @@ const QuizResponses = () => {
                           ) : (
                             <div className="text-center py-6 bg-orange-50 rounded-xl border border-orange-200">
                               <div className="text-4xl mb-2">⚠️</div>
-                              <p className="text-orange-700 font-medium">Session abandonnée</p>
+                              <p className="text-orange-700 font-medium">{t('quizResponses.sessionAbandoned', 'Session abandonnée')}</p>
                               <p className="text-orange-600 text-sm mt-1">
-                                Cette personne a commencé le quiz mais n'a répondu à aucune question.
+                                {t('quizResponses.noQuestionsAnswered', "Cette personne a commencé le quiz mais n'a répondu à aucune question.")}
                               </p>
                             </div>
                           )}
@@ -277,7 +279,7 @@ const QuizResponses = () => {
                               className="btn btn-ghost text-purple-600 text-sm inline-flex items-center gap-1"
                             >
                               <FiEye size={14} />
-                              Voir la page de résultats complète
+                              {t('quizResponses.viewFullResults', 'Voir la page de résultats complète')}
                             </Link>
                           ) : (
                             <span></span>
@@ -285,12 +287,12 @@ const QuizResponses = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              setDeleteModal({ show: true, sessionId: session.id, playerName: session.playerName || 'Anonyme' })
+                              setDeleteModal({ show: true, sessionId: session.id, playerName: session.playerName || t('questionnaireResponses.anonymous', 'Anonyme') })
                             }}
                             className="btn btn-ghost text-red-500 text-sm inline-flex items-center gap-1 hover:bg-red-50"
                           >
                             <FiTrash2 size={14} />
-                            Supprimer
+                            {t('common.delete', 'Supprimer')}
                           </button>
                         </div>
                       </div>
@@ -317,22 +319,22 @@ const QuizResponses = () => {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiTrash2 className="text-red-500 text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Supprimer cette réponse ?</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{t('quizResponses.deleteResponse', 'Supprimer cette réponse ?')}</h3>
               <p className="text-gray-600 mb-6">
-                La réponse de <strong>{deleteModal.playerName}</strong> sera définitivement supprimée.
+                {t('quizResponses.responseOf', 'La réponse de')} <strong>{deleteModal.playerName}</strong> {t('messages.willBePermanentlyDeleted', 'sera définitivement supprimée')}.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteModal({ show: false, sessionId: null, playerName: '' })}
                   className="flex-1 btn btn-ghost"
                 >
-                  Annuler
+                  {t('common.cancel', 'Annuler')}
                 </button>
                 <button
                   onClick={handleDeleteSession}
                   className="flex-1 btn bg-red-500 hover:bg-red-600 text-white"
                 >
-                  Supprimer
+                  {t('common.delete', 'Supprimer')}
                 </button>
               </div>
             </div>

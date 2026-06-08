@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { createQuestionnaire } from '../services/firestore'
 import { 
@@ -34,19 +35,19 @@ const QUESTION_TYPES = {
   RATING: 'rating'
 }
 
-// Labels et icônes pour chaque type
-const QUESTION_TYPE_INFO = {
-  [QUESTION_TYPES.YES_NO]: { label: 'Oui / Non', icon: '👍', description: 'Question binaire Oui ou Non' },
-  [QUESTION_TYPES.TRUE_FALSE]: { label: 'Vrai / Faux', icon: '✓✗', description: 'Question binaire Vrai ou Faux' },
-  [QUESTION_TYPES.SINGLE_CHOICE]: { label: 'Choix unique (Radio)', icon: '⭕', description: 'Une seule réponse possible' },
-  [QUESTION_TYPES.MULTIPLE_CHOICE]: { label: 'Cases à cocher', icon: '☑️', description: 'Plusieurs réponses possibles' },
-  [QUESTION_TYPES.DROPDOWN]: { label: 'Liste déroulante', icon: '📋', description: 'Sélection dans une liste' },
-  [QUESTION_TYPES.SHORT_TEXT]: { label: 'Texte court', icon: '📝', description: 'Réponse courte (1 ligne)' },
-  [QUESTION_TYPES.LONG_TEXT]: { label: 'Texte long', icon: '📄', description: 'Réponse détaillée (paragraphe)' },
-  [QUESTION_TYPES.NUMBER]: { label: 'Nombre', icon: '🔢', description: 'Valeur numérique' },
-  [QUESTION_TYPES.EMAIL]: { label: 'Email', icon: '📧', description: 'Adresse email' },
-  [QUESTION_TYPES.DATE]: { label: 'Date', icon: '📅', description: 'Sélection de date' },
-  [QUESTION_TYPES.RATING]: { label: 'Évaluation (1-5)', icon: '⭐', description: 'Note de 1 à 5 étoiles' }
+// Labels et icônes pour chaque type - labels are translated dynamically using getQuestionTypeInfo()
+const QUESTION_TYPE_INFO_KEYS = {
+  [QUESTION_TYPES.YES_NO]: { labelKey: 'questionnaire.questionTypes.yesNo', icon: '👍', descKey: 'questionnaire.typeDescriptions.yesNo' },
+  [QUESTION_TYPES.TRUE_FALSE]: { labelKey: 'questionnaire.questionTypes.trueFalse', icon: '✓✗', descKey: 'questionnaire.typeDescriptions.trueFalse' },
+  [QUESTION_TYPES.SINGLE_CHOICE]: { labelKey: 'questionnaire.questionTypes.singleChoice', icon: '⭕', descKey: 'questionnaire.typeDescriptions.singleChoice' },
+  [QUESTION_TYPES.MULTIPLE_CHOICE]: { labelKey: 'questionnaire.questionTypes.multipleChoice', icon: '☑️', descKey: 'questionnaire.typeDescriptions.multipleChoice' },
+  [QUESTION_TYPES.DROPDOWN]: { labelKey: 'questionnaire.questionTypes.dropdown', icon: '📋', descKey: 'questionnaire.typeDescriptions.dropdown' },
+  [QUESTION_TYPES.SHORT_TEXT]: { labelKey: 'questionnaire.questionTypes.shortText', icon: '📝', descKey: 'questionnaire.typeDescriptions.shortText' },
+  [QUESTION_TYPES.LONG_TEXT]: { labelKey: 'questionnaire.questionTypes.longText', icon: '📄', descKey: 'questionnaire.typeDescriptions.longText' },
+  [QUESTION_TYPES.NUMBER]: { labelKey: 'questionnaire.questionTypes.number', icon: '🔢', descKey: 'questionnaire.typeDescriptions.number' },
+  [QUESTION_TYPES.EMAIL]: { labelKey: 'questionnaire.questionTypes.email', icon: '📧', descKey: 'questionnaire.typeDescriptions.email' },
+  [QUESTION_TYPES.DATE]: { labelKey: 'questionnaire.questionTypes.date', icon: '📅', descKey: 'questionnaire.typeDescriptions.date' },
+  [QUESTION_TYPES.RATING]: { labelKey: 'questionnaire.questionTypes.rating', icon: '⭐', descKey: 'questionnaire.typeDescriptions.rating' }
 }
 
 // Types qui supportent les conditions (réponses prédéfinies)
@@ -58,9 +59,21 @@ const CONDITIONAL_TYPES = [
 ]
 
 const CreateQuestionnaire = () => {
+  const { t } = useTranslation()
   const { user, userData } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+
+  // Helper to get translated question type info
+  const getQuestionTypeInfo = (type) => {
+    const info = QUESTION_TYPE_INFO_KEYS[type]
+    if (!info) return { label: type, icon: '', description: '' }
+    return {
+      label: t(info.labelKey, info.labelKey.split('.').pop()),
+      icon: info.icon,
+      description: t(info.descKey, '')
+    }
+  }
 
   const [formData, setFormData] = useState({
     title: '',
@@ -111,12 +124,12 @@ const CreateQuestionnaire = () => {
     newQuestions.splice(index + 1, 0, duplicated)
     setQuestions(newQuestions)
     setExpandedQuestion(newId)
-    toast.success('Question dupliquée')
+    toast.success(t('questionnaire.messages.questionDuplicated', 'Question dupliquée'))
   }
 
   const removeQuestion = (questionId) => {
     if (questions.length <= 1) {
-      toast.error('Le questionnaire doit avoir au moins une question')
+      toast.error(t('questionnaire.errors.minOneQuestion', 'Le questionnaire doit avoir au moins une question'))
       return
     }
     
@@ -129,7 +142,7 @@ const CreateQuestionnaire = () => {
       }))
     
     setQuestions(updatedQuestions)
-    toast.success('Question supprimée')
+    toast.success(t('questionnaire.messages.questionDeleted', 'Question supprimée'))
   }
 
   const moveQuestion = (questionId, direction) => {
@@ -191,7 +204,7 @@ const CreateQuestionnaire = () => {
     setQuestions(questions.map(q => {
       if (q.id !== questionId) return q
       if (q.options.length <= 2) {
-        toast.error('Minimum 2 options requises')
+        toast.error(t('questionnaire.errors.minTwoOptions', 'Minimum 2 options requises'))
         return q
       }
       const removedOption = q.options[optionIndex]
@@ -232,9 +245,9 @@ const CreateQuestionnaire = () => {
   const getAnswerOptions = (question) => {
     switch (question.type) {
       case QUESTION_TYPES.YES_NO:
-        return ['Oui', 'Non']
+        return [t('common.yes', 'Oui'), t('common.no', 'Non')]
       case QUESTION_TYPES.TRUE_FALSE:
-        return ['Vrai', 'Faux']
+        return [t('questionnaire.answers.true', 'Vrai'), t('questionnaire.answers.false', 'Faux')]
       case QUESTION_TYPES.SINGLE_CHOICE:
       case QUESTION_TYPES.DROPDOWN:
         return question.options.filter(o => o.trim())
@@ -249,20 +262,20 @@ const CreateQuestionnaire = () => {
       .filter(q => q.id !== currentQuestionId)
       .map(q => ({ 
         id: q.id, 
-        text: `Q${questions.findIndex(qq => qq.id === q.id) + 1}: ${q.text || '(Sans titre)'}` 
+        text: `Q${questions.findIndex(qq => qq.id === q.id) + 1}: ${q.text || t('questionnaire.noTitle', '(Sans titre)')}` 
       }))
   }
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      toast.error('Veuillez entrer un titre')
+      toast.error(t('questionnaire.errors.enterTitle', 'Veuillez entrer un titre'))
       return false
     }
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i]
       if (!q.text.trim()) {
-        toast.error(`Question ${i + 1}: Veuillez entrer le texte de la question`)
+        toast.error(t('questionnaire.errors.enterQuestionText', 'Question {{num}}: Veuillez entrer le texte de la question', { num: i + 1 }))
         setExpandedQuestion(q.id)
         return false
       }
@@ -270,7 +283,7 @@ const CreateQuestionnaire = () => {
       if ([QUESTION_TYPES.SINGLE_CHOICE, QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.DROPDOWN].includes(q.type)) {
         const filledOptions = q.options.filter(o => o.trim())
         if (filledOptions.length < 2) {
-          toast.error(`Question ${i + 1}: Au moins 2 options sont requises`)
+          toast.error(t('questionnaire.errors.minTwoOptionsRequired', 'Question {{num}}: Au moins 2 options sont requises', { num: i + 1 }))
           setExpandedQuestion(q.id)
           return false
         }
@@ -279,7 +292,7 @@ const CreateQuestionnaire = () => {
       if (q.isConditional && q.conditions.length > 0) {
         for (let j = 0; j < q.conditions.length; j++) {
           if (!q.conditions[j].ifAnswer) {
-            toast.error(`Question ${i + 1}: Condition ${j + 1} incomplète`)
+            toast.error(t('questionnaire.errors.incompleteCondition', 'Question {{qNum}}: Condition {{cNum}} incomplète', { qNum: i + 1, cNum: j + 1 }))
             setExpandedQuestion(q.id)
             return false
           }
@@ -311,11 +324,11 @@ const CreateQuestionnaire = () => {
         }))
       })
 
-      toast.success('Questionnaire créé avec succès ! 🎉')
+      toast.success(t('questionnaire.messages.createdSuccess', 'Questionnaire créé avec succès ! 🎉'))
       navigate('/dashboard')
     } catch (error) {
       console.error('Create questionnaire error:', error)
-      toast.error('Erreur lors de la création')
+      toast.error(t('questionnaire.errors.createError', 'Erreur lors de la création'))
     } finally {
       setLoading(false)
     }
@@ -334,9 +347,9 @@ const CreateQuestionnaire = () => {
           <FiArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-white">Créer un Questionnaire 📋</h1>
+          <h1 className="text-3xl font-bold text-white">{t('questionnaire.create', 'Créer un questionnaire')} 📋</h1>
           <p className="text-white/70">
-            Questionnaire conditionnel avec logique de branchement avancée
+            {t('questionnaire.createSubtitle', 'Questionnaire conditionnel avec logique de branchement avancée')}
           </p>
         </div>
       </div>
@@ -344,33 +357,33 @@ const CreateQuestionnaire = () => {
       <form onSubmit={handleSubmit}>
         {/* Info Card */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">📝 Informations générales</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">📝 {t('questionnaire.generalInfo', 'Informations générales')}</h2>
           
           <div className="grid gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titre du questionnaire *
+                {t('questionnaire.title', 'Titre du questionnaire')} *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="input"
-                placeholder="Ex: Enquête de satisfaction client"
+                placeholder={t('questionnaire.placeholders.titleExample', 'Ex: Enquête de satisfaction client')}
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                {t('questionnaire.description', 'Description')}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="input resize-none"
                 rows={3}
-                placeholder="Décrivez l'objectif de ce questionnaire..."
+                placeholder={t('questionnaire.placeholders.descriptionExample', "Décrivez l'objectif de ce questionnaire...")}
               />
             </div>
           </div>
@@ -378,11 +391,11 @@ const CreateQuestionnaire = () => {
           <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <FiList className="text-purple-500" />
-              <span>{questions.length} question(s)</span>
+              <span>{questions.length} {t('questionnaire.questionCount', 'question(s)')}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <FiLink className="text-blue-500" />
-              <span>{conditionalCount} conditionnelle(s)</span>
+              <span>{conditionalCount} {t('questionnaire.conditionalCount', 'conditionnelle(s)')}</span>
             </div>
           </div>
         </div>
@@ -392,11 +405,9 @@ const CreateQuestionnaire = () => {
           <div className="flex items-start gap-3">
             <FiHelpCircle className="text-blue-500 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-blue-800 mb-1">💡 Comment fonctionne la logique conditionnelle ?</p>
+              <p className="font-medium text-blue-800 mb-1">💡 {t('questionnaire.helpTitle', 'Comment fonctionne la logique conditionnelle ?')}</p>
               <p className="text-blue-600">
-                Activez l'option <strong>"Question dépendante"</strong> pour créer des branchements. 
-                Exemple : si l'utilisateur répond "Oui" à "Buvez-vous de l'alcool ?", passez à la question sur les types d'alcool. 
-                Si "Non", passez à la question sur les boissons non-alcoolisées.
+                {t('questionnaire.helpText', 'Activez l\'option "Question dépendante" pour créer des branchements. Exemple : si l\'utilisateur répond "Oui" à "Buvez-vous de l\'alcool ?", passez à la question sur les types d\'alcool. Si "Non", passez à la question sur les boissons non-alcoolisées.')}
               </p>
             </div>
           </div>
@@ -428,21 +439,21 @@ const CreateQuestionnaire = () => {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-800 truncate">
-                      {question.text || 'Nouvelle question'}
+                      {question.text || t('questionnaire.newQuestion', 'Nouvelle question')}
                     </p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-xs text-gray-500 flex items-center gap-1">
-                        {QUESTION_TYPE_INFO[question.type]?.icon} {QUESTION_TYPE_INFO[question.type]?.label}
+                        {getQuestionTypeInfo(question.type).icon} {getQuestionTypeInfo(question.type).label}
                       </span>
                       {question.isConditional && (
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1">
                           <FiLink2 size={10} />
-                          Dépendante
+                          {t('questionnaire.dependent', 'Dépendante')}
                         </span>
                       )}
                       {question.conditions.length > 0 && (
                         <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
-                          {question.conditions.length} branche(s)
+                          {question.conditions.length} {t('questionnaire.branches', 'branche(s)')}
                         </span>
                       )}
                     </div>
@@ -489,42 +500,45 @@ const CreateQuestionnaire = () => {
                   {/* Question Text */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Texte de la question *
+                      {t('questionnaire.questionText', 'Texte de la question')} *
                     </label>
                     <input
                       type="text"
                       value={question.text}
                       onChange={(e) => updateQuestion(question.id, 'text', e.target.value)}
                       className="input"
-                      placeholder="Ex: Buvez-vous de l'alcool ?"
+                      placeholder={t('questionnaire.placeholders.questionText', 'Entrez votre question...')}
                     />
                   </div>
 
                   {/* Question Type Selector */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Type de réponse
+                      {t('questionnaire.answerType', 'Type de réponse')}
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {Object.entries(QUESTION_TYPE_INFO).map(([type, info]) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => updateQuestion(question.id, 'type', type)}
-                          className={`p-3 rounded-xl border-2 text-left transition-all ${
-                            question.type === type
-                              ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
-                              : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
-                          }`}
-                        >
-                          <span className="text-lg">{info.icon}</span>
-                          <p className={`text-xs font-medium mt-1 ${
-                            question.type === type ? 'text-purple-700' : 'text-gray-700'
-                          }`}>
-                            {info.label}
-                          </p>
-                        </button>
-                      ))}
+                      {Object.entries(QUESTION_TYPE_INFO_KEYS).map(([type, info]) => {
+                        const typeInfo = getQuestionTypeInfo(type)
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => updateQuestion(question.id, 'type', type)}
+                            className={`p-3 rounded-xl border-2 text-left transition-all ${
+                              question.type === type
+                                ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                                : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                            }`}
+                          >
+                            <span className="text-lg">{typeInfo.icon}</span>
+                            <p className={`text-xs font-medium mt-1 ${
+                              question.type === type ? 'text-purple-700' : 'text-gray-700'
+                            }`}>
+                              {typeInfo.label}
+                            </p>
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
 
@@ -532,9 +546,9 @@ const CreateQuestionnaire = () => {
                   {[QUESTION_TYPES.SINGLE_CHOICE, QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.DROPDOWN].includes(question.type) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Options de réponse
+                        {t('questionnaire.answerOptions', 'Options de réponse')}
                         {question.type === QUESTION_TYPES.MULTIPLE_CHOICE && (
-                          <span className="text-gray-400 font-normal ml-2">(cases à cocher - plusieurs choix possibles)</span>
+                          <span className="text-gray-400 font-normal ml-2">({t('questionnaire.checkboxesHint', 'cases à cocher - plusieurs choix possibles')})</span>
                         )}
                       </label>
                       <div className="space-y-2">
@@ -569,7 +583,7 @@ const CreateQuestionnaire = () => {
                           className="btn btn-ghost text-purple-600 text-sm mt-2"
                         >
                           <FiPlus className="inline mr-1" />
-                          Ajouter une option
+                          {t('questionnaire.addOption', 'Ajouter une option')}
                         </button>
                       </div>
                     </div>
@@ -579,14 +593,14 @@ const CreateQuestionnaire = () => {
                   {[QUESTION_TYPES.SHORT_TEXT, QUESTION_TYPES.LONG_TEXT, QUESTION_TYPES.EMAIL].includes(question.type) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Texte indicatif (placeholder)
+                        {t('questionnaire.placeholderLabel', 'Texte indicatif (placeholder)')}
                       </label>
                       <input
                         type="text"
                         value={question.placeholder || ''}
                         onChange={(e) => updateQuestion(question.id, 'placeholder', e.target.value)}
                         className="input"
-                        placeholder="Ex: Entrez votre réponse ici..."
+                        placeholder={t('questionnaire.placeholders.placeholderExample', 'Ex: Entrez votre réponse ici...')}
                       />
                     </div>
                   )}
@@ -600,7 +614,7 @@ const CreateQuestionnaire = () => {
                         onChange={(e) => updateQuestion(question.id, 'required', e.target.checked)}
                         className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
                       />
-                      <span className="text-sm text-gray-700">Obligatoire</span>
+                      <span className="text-sm text-gray-700">{t('questionnaire.required', 'Obligatoire')}</span>
                     </label>
 
                     {CONDITIONAL_TYPES.includes(question.type) && questions.length > 1 && (
@@ -613,7 +627,7 @@ const CreateQuestionnaire = () => {
                         />
                         <span className="text-sm text-gray-700 flex items-center gap-1">
                           <FiLink2 size={14} className="text-blue-500" />
-                          Question dépendante (avec branchement)
+                          {t('questionnaire.dependentQuestion', 'Question dépendante (avec branchement)')}
                         </span>
                       </label>
                     )}
@@ -624,29 +638,29 @@ const CreateQuestionnaire = () => {
                     <div className="border-2 border-blue-200 rounded-xl p-5 bg-blue-50/50">
                       <h4 className="font-bold text-blue-800 mb-4 flex items-center gap-2">
                         <FiLink className="text-blue-500" />
-                        Logique de branchement
+                        {t('questionnaire.conditionalLogic', 'Logique de branchement')}
                       </h4>
 
                       <p className="text-sm text-blue-600 mb-4">
-                        Définissez quelle question afficher selon la réponse de l'utilisateur.
+                        {t('questionnaire.conditionalLogicDesc', "Définissez quelle question afficher selon la réponse de l'utilisateur.")}
                       </p>
                       
                       <div className="space-y-3">
                         {question.conditions.map((condition, condIndex) => (
                           <div key={condIndex} className="flex flex-wrap items-center gap-2 p-4 bg-white rounded-xl border border-blue-200 shadow-sm">
-                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">Si réponse =</span>
+                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{t('questionnaire.ifAnswerEquals', 'Si réponse =')} </span>
                             <select
                               value={condition.ifAnswer}
                               onChange={(e) => updateCondition(question.id, condIndex, 'ifAnswer', e.target.value)}
                               className="input py-2 px-3 w-auto text-sm font-medium"
                             >
-                              <option value="">-- Choisir --</option>
+                              <option value="">-- {t('questionnaire.choose', 'Choisir')} --</option>
                               {getAnswerOptions(question).map((opt, i) => (
                                 <option key={i} value={opt}>{opt}</option>
                               ))}
                             </select>
                             <FiChevronRight className="text-blue-400" />
-                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">Aller à</span>
+                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{t('questionnaire.goTo', 'Aller à')}</span>
                             <select
                               value={condition.goToQuestion || ''}
                               onChange={(e) => {
@@ -655,8 +669,8 @@ const CreateQuestionnaire = () => {
                               }}
                               className="input py-2 px-3 w-auto text-sm font-medium flex-1 min-w-[180px]"
                             >
-                              <option value="">Question suivante (défaut)</option>
-                              <option value="end">🏁 Fin du questionnaire</option>
+                              <option value="">{t('questionnaire.nextQuestionDefault', 'Question suivante (défaut)')}</option>
+                              <option value="end">🏁 {t('questionnaire.endQuestionnaire', 'Fin du questionnaire')}</option>
                               {getNextQuestionOptions(question.id).map((opt) => (
                                 <option key={opt.id} value={opt.id}>{opt.text}</option>
                               ))}
@@ -678,14 +692,14 @@ const CreateQuestionnaire = () => {
                             className="btn btn-ghost text-blue-600 text-sm"
                           >
                             <FiPlus className="inline mr-1" />
-                            Ajouter une branche conditionnelle
+                            {t('questionnaire.addCondition', 'Ajouter une branche conditionnelle')}
                           </button>
                         )}
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-blue-200">
                         <label className="block text-sm font-medium text-blue-800 mb-2">
-                          Si aucune condition ne correspond :
+                          {t('questionnaire.ifNoConditionMatches', 'Si aucune condition ne correspond :')}
                         </label>
                         <select
                           value={question.defaultNext || ''}
@@ -695,8 +709,8 @@ const CreateQuestionnaire = () => {
                           }}
                           className="input py-2"
                         >
-                          <option value="">Question suivante (ordre normal)</option>
-                          <option value="end">🏁 Fin du questionnaire</option>
+                          <option value="">{t('questionnaire.nextQuestionNormal', 'Question suivante (ordre normal)')}</option>
+                          <option value="end">🏁 {t('questionnaire.endQuestionnaire', 'Fin du questionnaire')}</option>
                           {getNextQuestionOptions(question.id).map((opt) => (
                             <option key={opt.id} value={opt.id}>{opt.text}</option>
                           ))}

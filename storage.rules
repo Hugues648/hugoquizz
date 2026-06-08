@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fonction pour vérifier si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Fonction pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Fonction pour vérifier si le fichier est une image
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Fonction pour vérifier si le fichier est audio (permissif pour supporter tous les formats)
+    function isAudioOrMedia() {
+      return request.resource.contentType.matches('audio/.*') ||
+             request.resource.contentType.matches('video/.*') ||
+             request.resource.contentType.matches('application/octet-stream') ||
+             request.resource.contentType.matches('application/ogg');
+    }
+    
+    // Fonction pour vérifier la taille du fichier (max 60MB)
+    function isValidSize() {
+      return request.resource.size < 60 * 1024 * 1024;
+    }
+    
+    // Fonction pour vérifier la taille audio (max 20MB)
+    function isValidAudioSize() {
+      return request.resource.size < 20 * 1024 * 1024;
+    }
+    
+    // Règles pour les musiques du quiz (audio - utilisateurs authentifiés)
+    match /quizMusic/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isValidAudioSize();
+    }
+    
+    // Règles pour les musiques d'événements (fond musical)
+    match /music/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isAudioOrMedia() && isValidAudioSize();
+    }
+    
+    // Règles pour les photos de profil utilisateur
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && request.auth.uid == userId && isImage() && isValidSize();
+    }
+    
+    // Règles pour les images générales
+    match /images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour les images d'événements
+    match /events/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour les images de cadeaux
+    match /gifts/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour les images d'invitation
+    match /invitations/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour les photos de galerie
+    match /gallery/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour les images de quiz
+    match /quizzes/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+    
+    // Règles pour le livre d'or - permet aux invités non connectés
+    match /guestbook/{allPaths=**} {
+      allow read: if true;
+      allow write: if isImage() && isValidSize();
+    }
+    
+    // Règles pour les logos du site (admin uniquement)
+    match /site-logos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+
+    // Images des services (publiques en lecture, écriture par utilisateurs authentifiés)
+    match /services/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isValidSize();
+    }
+
+    // Documents de vérification d'identité (pièce d'identité + vidéo selfie)
+    // Sensibles : écriture par le propriétaire uniquement.
+    // Lecture restreinte aux utilisateurs authentifiés (les URLs ne sont
+    // stockées que dans serviceVerifications, lisible par le propriétaire et l'admin).
+    match /verifications/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId && isValidSize();
+    }
+  }
+}

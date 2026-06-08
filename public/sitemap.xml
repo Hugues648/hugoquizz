@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- ==================== PAGE D'ACCUEIL ==================== -->
+  <!-- Racine - redirige vers la langue détectée -->
+  <url>
+    <loc>https://hugoquiz.com/</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hugoquiz.com/"/>
+  </url>
+  
+  <!-- Accueil Français -->
+  <url>
+    <loc>https://hugoquiz.com/fr/</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hugoquiz.com/"/>
+  </url>
+  
+  <!-- Accueil Anglais -->
+  <url>
+    <loc>https://hugoquiz.com/en/</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hugoquiz.com/"/>
+  </url>
+  
+  <!-- Accueil Allemand -->
+  <url>
+    <loc>https://hugoquiz.com/de/</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hugoquiz.com/"/>
+  </url>
+  
+  <!-- Accueil Néerlandais -->
+  <url>
+    <loc>https://hugoquiz.com/nl/</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://hugoquiz.com/"/>
+  </url>
+
+  <!-- ==================== PAGE CONNEXION ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/login</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/login"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/login"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/login"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/login"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/login</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/login"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/login"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/login"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/login"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/login</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/login"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/login"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/login"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/login"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/login</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/login"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/login"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/login"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/login"/>
+  </url>
+
+  <!-- ==================== PAGE INSCRIPTION ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/register</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/register"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/register"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/register"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/register"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/register</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/register"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/register"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/register"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/register"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/register</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/register"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/register"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/register"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/register"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/register</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/register"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/register"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/register"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/register"/>
+  </url>
+
+  <!-- ==================== PAGE TARIFS ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/pricing</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/pricing"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/pricing</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/pricing"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/pricing</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/pricing"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/pricing</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/pricing"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/pricing"/>
+  </url>
+
+  <!-- ==================== CONDITIONS GÉNÉRALES ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/cgu</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/cgu"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/cgu</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/cgu"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/cgu</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/cgu"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/cgu</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/cgu"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/cgu"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/cgu"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/cgu"/>
+  </url>
+
+  <!-- ==================== POLITIQUE DE CONFIDENTIALITÉ ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/privacy</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/privacy"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/privacy</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/privacy"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/privacy</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/privacy"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/privacy</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/privacy"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/privacy"/>
+  </url>
+
+  <!-- ==================== DASHBOARD (après connexion) ==================== -->
+  <url>
+    <loc>https://hugoquiz.com/fr/dashboard</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/dashboard"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/en/dashboard</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/dashboard"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/de/dashboard</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/dashboard"/>
+  </url>
+  <url>
+    <loc>https://hugoquiz.com/nl/dashboard</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://hugoquiz.com/fr/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://hugoquiz.com/en/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://hugoquiz.com/de/dashboard"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://hugoquiz.com/nl/dashboard"/>
+  </url>
+
+</urlset>
