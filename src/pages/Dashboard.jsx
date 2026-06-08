@@ -467,53 +467,53 @@ const Dashboard = () => {
 
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('quizzes')}
-            className={`flex-1 px-4 py-4 font-medium transition-colors ${
+            className={`flex-1 min-w-max whitespace-nowrap px-3 md:px-4 py-4 text-sm md:text-base font-medium transition-colors ${
               activeTab === 'quizzes'
                 ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            <FiHelpCircle className="inline mr-2" />
+            <FiHelpCircle className="inline mr-1.5 md:mr-2" />
             {t('dashboard.tabs.quiz')} ({quizzes.length})
           </button>
           <button
             onClick={() => canAccessQuestionnaire() ? setActiveTab('questionnaires') : navigateTo('/pricing')}
-            className={`flex-1 px-4 py-4 font-medium transition-colors relative ${
+            className={`flex-1 min-w-max whitespace-nowrap px-3 md:px-4 py-4 text-sm md:text-base font-medium transition-colors relative ${
               activeTab === 'questionnaires'
                 ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
                 : 'text-gray-500 hover:text-gray-700'
             } ${!canAccessQuestionnaire() ? 'opacity-60' : ''}`}
           >
             {!canAccessQuestionnaire() && <FiLock className="inline mr-1 text-amber-500" />}
-            <FiList className="inline mr-2" />
+            <FiList className="inline mr-1.5 md:mr-2" />
             {t('dashboard.tabs.questionnaires')} ({questionnaires.length})
             {!canAccessQuestionnaire() && <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full ml-2">PRO</span>}
           </button>
           <button
             onClick={() => canAccessEvents() ? setActiveTab('events') : navigateTo('/pricing')}
-            className={`flex-1 px-4 py-4 font-medium transition-colors relative ${
+            className={`flex-1 min-w-max whitespace-nowrap px-3 md:px-4 py-4 text-sm md:text-base font-medium transition-colors relative ${
               activeTab === 'events'
                 ? 'text-pink-600 border-b-2 border-pink-600 bg-pink-50'
                 : 'text-gray-500 hover:text-gray-700'
             } ${!canAccessEvents() ? 'opacity-60' : ''}`}
           >
             {!canAccessEvents() && <FiLock className="inline mr-1 text-amber-500" />}
-            <FiGift className="inline mr-2" />
+            <FiGift className="inline mr-1.5 md:mr-2" />
             {t('dashboard.tabs.events')} ({events.length})
             {!canAccessEvents() && <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full ml-2">PRO</span>}
           </button>
           <button
             onClick={() => setActiveTab('services')}
-            className={`flex-1 px-4 py-4 font-medium transition-colors relative ${
+            className={`flex-1 min-w-max whitespace-nowrap px-3 md:px-4 py-4 text-sm md:text-base font-medium transition-colors relative ${
               activeTab === 'services'
                 ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            <FiBriefcase className="inline mr-2" />
+            <FiBriefcase className="inline mr-1.5 md:mr-2" />
             {t('dashboard.tabs.services', 'Services')} ({services.length})
           </button>
         </div>

@@ -1032,7 +1032,8 @@ export default {
     tabs: {
       quiz: 'Quiz',
       questionnaires: 'Fragebögen',
-      events: 'Veranstaltungen'
+      events: 'Veranstaltungen',
+      services: 'Services'
     },
     actions: {
       hostLive: 'Live moderieren',

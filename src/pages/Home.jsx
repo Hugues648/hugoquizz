@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { FiPlay, FiEdit, FiUsers, FiCheckCircle, FiArrowRight, FiGift, FiHeart, FiStar, FiMusic, FiZap, FiCamera, FiShare2, FiTrendingUp, FiAward, FiMail, FiFileText, FiShield, FiHelpCircle } from 'react-icons/fi'
+import { FiPlay, FiEdit, FiUsers, FiCheckCircle, FiArrowRight, FiGift, FiHeart, FiStar, FiMusic, FiZap, FiCamera, FiShare2, FiTrendingUp, FiAward, FiMail, FiFileText, FiShield, FiHelpCircle, FiBriefcase } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { useSiteConfig } from '../contexts/SiteConfigContext'
 import LanguageSelector from '../components/LanguageSelector'
@@ -98,18 +98,19 @@ const Home = () => {
             )}
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{siteName}</h1>
-              <p className="text-xs text-gray-500">Quiz • {t('events.title')} • {t('events.gifts.title')}</p>
+              <p className="text-xs text-gray-500">Quiz • {t('events.title')} • {t('events.gifts.title')} • {t('services.marketplace.navLink', 'Services')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             {/* Language Selector */}
             <LanguageSelector />
 
             <LocalizedLink
               to="/services"
-              className="text-gray-700 font-medium hover:text-violet-600 transition-colors hidden md:block"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 font-semibold text-sm hover:bg-amber-100 transition-colors"
             >
-              {t('services.marketplace.navLink', 'Services')}
+              <FiBriefcase className="text-base" />
+              <span>{t('services.marketplace.navLink', 'Services')}</span>
             </LocalizedLink>
 
             {user ? (

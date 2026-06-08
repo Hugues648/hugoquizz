@@ -8,7 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import {
-  createService, updateService, getServiceById
+  createService, updateService, getServiceById, getLatestVerificationByUser
 } from '../services/firestore'
 import { SERVICE_CATEGORIES, getCategoryById, categoryLabel, typeLabel } from '../config/serviceCategories'
 import { useLocalizedPath } from '../components/LocalizedLink'
@@ -47,7 +47,29 @@ export default function CreateService() {
   const [windows, setWindows] = useState([emptyWindow('Accueil')])
   const [activeWindow, setActiveWindow] = useState(0)
 
-  const approved = userData?.serviceProviderStatus === 'approved'
+  // Access gate: approved if the user doc says so OR the latest verification is approved
+  const [accessApproved, setAccessApproved] = useState(userData?.serviceProviderStatus === 'approved')
+  const [checkingAccess, setCheckingAccess] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+    let active = true
+    ;(async () => {
+      try {
+        if (userData?.serviceProviderStatus === 'approved') {
+          if (active) setAccessApproved(true)
+          return
+        }
+        const latest = await getLatestVerificationByUser(user.uid)
+        if (active) setAccessApproved(latest?.status === 'approved')
+      } catch (e) {
+        console.error(e)
+      } finally {
+        if (active) setCheckingAccess(false)
+      }
+    })()
+    return () => { active = false }
+  }, [user, userData])
 
   useEffect(() => {
     if (!isEdit) return
@@ -214,7 +236,15 @@ export default function CreateService() {
   }
 
   // ----- Access gate -----
-  if (!approved) {
+  if (checkingAccess) {
+    return (
+      <div className="flex justify-center py-20">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  if (!accessApproved) {
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -363,6 +393,7 @@ export default function CreateService() {
             onChange={(url) => setMeta({ ...meta, coverImage: url })}
             folder="services"
             storagePath="services"
+            maxSizeMB={1}
           />
         </div>
 
@@ -543,6 +574,7 @@ export default function CreateService() {
                         onChange={(url) => updateBlock(bi, { url })}
                         folder="services"
                         storagePath="services"
+                        maxSizeMB={1}
                       />
                       <input
                         type="text"

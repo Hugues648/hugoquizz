@@ -889,7 +889,8 @@ export default {
     tabs: {
       quiz: 'Quiz',
       questionnaires: 'Questionnaires',
-      events: 'Événements'
+      events: 'Événements',
+      services: 'Services'
     },
     actions: {
       hostLive: 'Animer en direct',
