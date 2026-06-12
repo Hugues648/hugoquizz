@@ -58,6 +58,7 @@ import {
 import { getSiteConfig, updateLogo } from '../services/siteConfig'
 import { uploadImage } from '../services/storage'
 import AdminServices from '../components/services/AdminServices'
+import AdminMessaging from '../components/services/AdminMessaging'
 import { useSiteConfig } from '../contexts/SiteConfigContext'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -585,6 +586,7 @@ const AdminPanel = () => {
     { id: 'storage', label: t('admin.tabs.storage', 'Stockage'), icon: FiHardDrive },
     { id: 'content', label: t('admin.tabs.content'), icon: FiList },
     { id: 'services', label: t('admin.tabs.services', 'Services'), icon: FiBriefcase },
+    { id: 'messaging', label: t('admin.tabs.messaging', 'Messagerie'), icon: FiMail },
     { id: 'activity', label: t('admin.tabs.activity'), icon: FiActivity },
     { id: 'settings', label: t('admin.tabs.settings'), icon: FiSettings }
   ]
@@ -1623,6 +1625,11 @@ const AdminPanel = () => {
           {/* ==================== SERVICES TAB ==================== */}
           {activeTab === 'services' && (
             <AdminServices />
+          )}
+
+          {/* ==================== MESSAGING TAB ==================== */}
+          {activeTab === 'messaging' && (
+            <AdminMessaging users={users} />
           )}
 
           {/* ==================== SETTINGS TAB ==================== */}

@@ -13,6 +13,7 @@ import {
 import { SERVICE_CATEGORIES, getCategoryById, categoryLabel, typeLabel } from '../config/serviceCategories'
 import { useLocalizedPath } from '../components/LocalizedLink'
 import ImageUpload from '../components/ImageUpload'
+import ServiceAvatar from '../components/services/ServiceAvatar'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const emptyWindow = (title = '') => ({ title, blocks: [] })
@@ -35,6 +36,7 @@ export default function CreateService() {
     title: '',
     tagline: '',
     coverImage: '',
+    ownerPhotoURL: userData?.photoURL || '',
     priceLabel: '',
     priceComment: '',
   })
@@ -93,6 +95,7 @@ export default function CreateService() {
           title: svc.title || '',
           tagline: svc.tagline || '',
           coverImage: svc.coverImage || '',
+          ownerPhotoURL: svc.ownerPhotoURL || '',
           priceLabel: svc.priceLabel || '',
           priceComment: svc.priceComment || '',
         })
@@ -199,7 +202,7 @@ export default function CreateService() {
       const payload = {
         userId: user.uid,
         businessName: meta.businessName.trim(),
-        ownerPhotoURL: userData?.photoURL || '',
+        ownerPhotoURL: meta.ownerPhotoURL || '',
         category: meta.category,
         serviceType: meta.serviceType,
         title: meta.title.trim(),
@@ -304,6 +307,28 @@ export default function CreateService() {
         <h2 className="font-bold text-gray-900 flex items-center gap-2">
           <FiTag className="text-violet-500" /> {t('services.generalInfo', 'Informations générales')}
         </h2>
+
+        {/* Profile photo */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            {t('services.profilePhoto', 'Photo de profil')}
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            {t('services.profilePhotoHint', "Si vous n'ajoutez pas de photo, les initiales de votre nom seront affichées.")}
+          </p>
+          <div className="flex items-center gap-4">
+            <ServiceAvatar name={meta.businessName} photoURL={meta.ownerPhotoURL} size={64} />
+            <div className="flex-1">
+              <ImageUpload
+                value={meta.ownerPhotoURL}
+                onChange={(url) => setMeta({ ...meta, ownerPhotoURL: url })}
+                folder="services"
+                storagePath="services"
+                maxSizeMB={1}
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-4">
           <div>

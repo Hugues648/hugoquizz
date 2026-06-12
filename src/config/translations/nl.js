@@ -1943,7 +1943,29 @@ export default {
   // Admin
   admin: {
     tabs: {
-      services: 'Services'
+      services: 'Services',
+      messaging: 'Berichten'
+    },
+    messaging: {
+      title: 'Een bericht sturen',
+      subtitle: 'Schrijf naar één, meerdere of alle gebruikers. Het bericht wordt per e-mail en melding bezorgd.',
+      allUsers: 'Alle gebruikers',
+      selectUsers: 'Gebruikers selecteren',
+      searchUser: 'Een gebruiker zoeken...',
+      toggleAll: 'Alles (de)selecteren',
+      noUsers: 'Geen gebruiker',
+      subject: 'Onderwerp',
+      subjectPlaceholder: 'Onderwerp van uw bericht',
+      message: 'Bericht',
+      messagePlaceholder: 'Schrijf hier uw bericht...',
+      emailHint: 'De e-mail krijgt het HugoQuiz-ontwerp met een knop naar de site.',
+      send: 'Bericht verzenden',
+      sending: 'Bezig met verzenden...',
+      needSubject: 'Voer een onderwerp in.',
+      needMessage: 'Voer een bericht in.',
+      needRecipients: 'Selecteer minstens één ontvanger.',
+      confirm: 'Dit bericht naar {{count}} gebruiker(s) sturen?',
+      sent: 'Bericht verzonden naar {{sent}}/{{total}} gebruiker(s).'
     },
     services: {
       verifications: 'Verificaties',
@@ -2696,6 +2718,8 @@ export default {
     category: 'Categorie',
     serviceType: 'Servicetype',
     coverImage: 'Omslagafbeelding',
+    profilePhoto: 'Profielfoto',
+    profilePhotoHint: 'Als u geen foto toevoegt, worden de initialen van uw naam weergegeven.',
     price: 'Prijs (optioneel)',
     pricePlaceholder: 'Bijv. Vanaf €350 / Op aanvraag',
     priceComment: 'Opmerking over de prijs',

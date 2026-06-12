@@ -2026,7 +2026,29 @@ export default {
   admin: {
     title: 'Administration',
     tabs: {
-      services: 'Services'
+      services: 'Services',
+      messaging: 'Nachrichten'
+    },
+    messaging: {
+      title: 'Nachricht senden',
+      subtitle: 'Schreiben Sie an einen, mehrere oder alle Benutzer. Die Nachricht wird per E-Mail und Benachrichtigung zugestellt.',
+      allUsers: 'Alle Benutzer',
+      selectUsers: 'Benutzer auswählen',
+      searchUser: 'Benutzer suchen...',
+      toggleAll: 'Alle aus-/abwählen',
+      noUsers: 'Kein Benutzer',
+      subject: 'Betreff',
+      subjectPlaceholder: 'Betreff Ihrer Nachricht',
+      message: 'Nachricht',
+      messagePlaceholder: 'Schreiben Sie hier Ihre Nachricht...',
+      emailHint: 'Die E-Mail wird im HugoQuiz-Design mit einer Schaltfläche zur Website gestaltet.',
+      send: 'Nachricht senden',
+      sending: 'Wird gesendet...',
+      needSubject: 'Bitte geben Sie einen Betreff ein.',
+      needMessage: 'Bitte geben Sie eine Nachricht ein.',
+      needRecipients: 'Wählen Sie mindestens einen Empfänger aus.',
+      confirm: 'Diese Nachricht an {{count}} Benutzer senden?',
+      sent: 'Nachricht an {{sent}}/{{total}} Benutzer gesendet.'
     },
     services: {
       verifications: 'Verifizierungen',
@@ -2819,6 +2841,8 @@ export default {
     category: 'Kategorie',
     serviceType: 'Service-Typ',
     coverImage: 'Titelbild',
+    profilePhoto: 'Profilfoto',
+    profilePhotoHint: 'Wenn Sie kein Foto hinzufügen, werden die Initialen Ihres Namens angezeigt.',
     price: 'Preis (optional)',
     pricePlaceholder: 'z. B. Ab 350 € / Auf Anfrage',
     priceComment: 'Hinweis zum Preis',

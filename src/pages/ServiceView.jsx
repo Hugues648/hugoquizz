@@ -429,8 +429,8 @@ export default function ServiceView() {
         )}
       </main>
 
-      {/* Footer view count for owner */}
-      {isOwner && (
+      {/* Footer view count for owner or admin only */}
+      {canPreview && (
         <div className="max-w-5xl mx-auto px-4 pb-10 text-center text-sm text-gray-400 flex items-center justify-center gap-1">
           <FiEye /> {service.views || 0} {t('services.views', 'vues')}
         </div>

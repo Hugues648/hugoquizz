@@ -4439,3 +4439,92 @@ exports.onServiceMessageCreated = functions.firestore
     return null
   })
 
+// ==================== ADMIN MESSAGING ====================
+
+// Professional email template with a CTA button linking to hugoquiz.com.
+function adminMessageEmail(subject, messageHtml, recipientName) {
+  const accent = '#7c3aed'
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.08); margin-top:24px; margin-bottom:24px;">
+    <div style="background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%); padding: 36px 24px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">HugoQuiz</h1>
+      <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">${subject}</p>
+    </div>
+    <div style="padding: 32px 34px; color: #374151; font-size: 15px; line-height: 1.7;">
+      <p style="margin-top:0;">Bonjour <strong>${recipientName || ''}</strong>,</p>
+      <div style="white-space: pre-line;">${messageHtml}</div>
+      <div style="text-align: center; margin: 32px 0 8px;">
+        <a href="https://hugoquiz.com" style="display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 15px;">Aller sur HugoQuiz</a>
+      </div>
+    </div>
+    <div style="padding: 22px 30px; background:#f9fafb; color:#9ca3af; font-size:12px; text-align:center; line-height:1.6;">
+      <p style="margin:0 0 6px;">Cet e-mail vous a été envoyé par l'équipe HugoQuiz.</p>
+      <p style="margin:0;">
+        <a href="https://hugoquiz.com" style="color:${accent}; text-decoration:none;">Accueil</a> &nbsp;•&nbsp;
+        <a href="https://hugoquiz.com/dashboard" style="color:${accent}; text-decoration:none;">Mon espace</a> &nbsp;•&nbsp;
+        <a href="https://hugoquiz.com/help" style="color:${accent}; text-decoration:none;">Aide</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+// Admin sends a message (email + in-app notification) to one, several or all users.
+exports.sendAdminMessage = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in')
+  }
+  const callerDoc = await db.collection('users').doc(context.auth.uid).get()
+  if (callerDoc.data()?.role !== 'admin') {
+    throw new functions.https.HttpsError('permission-denied', 'Must be admin')
+  }
+
+  const { userIds, allUsers, subject, message } = data
+  if (!subject || !message || !String(message).trim()) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing subject or message')
+  }
+
+  // Resolve the list of recipient user documents.
+  let recipients = []
+  if (allUsers) {
+    const snap = await db.collection('users').get()
+    recipients = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } else if (Array.isArray(userIds) && userIds.length > 0) {
+    const reads = await Promise.all(
+      userIds.map(uid => db.collection('users').doc(uid).get())
+    )
+    recipients = reads.filter(s => s.exists).map(s => ({ id: s.id, ...s.data() }))
+  } else {
+    throw new functions.https.HttpsError('invalid-argument', 'No recipients specified')
+  }
+
+  // Escape user-provided text to avoid HTML injection, keep line breaks.
+  const safeMessage = String(message)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  const safeSubject = String(subject).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  let sent = 0
+  let failed = 0
+  for (const r of recipients) {
+    const name = r.displayName || r.firstName || r.email || ''
+    // In-app notification
+    await createUserNotification(r.id, 'admin_message', `📢 ${safeSubject}`)
+    // Email
+    if (r.email) {
+      const ok = await sendEmail(r.email, safeSubject, adminMessageEmail(safeSubject, safeMessage, name))
+      if (ok) { sent++ } else { failed++ }
+    } else {
+      failed++
+    }
+  }
+
+  return { total: recipients.length, sent, failed }
+})
+
