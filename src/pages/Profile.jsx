@@ -6,12 +6,12 @@ import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { uploadFile, deleteFile } from '../services/storage'
 import { deleteAccount } from '../services/stripe'
-import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera, FiSave, FiEdit2, FiZap, FiCreditCard, FiArrowRight, FiCheck, FiHome, FiTrash2, FiLogOut, FiFileText, FiShield, FiAlertTriangle } from 'react-icons/fi'
+import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera, FiSave, FiEdit2, FiZap, FiCreditCard, FiArrowRight, FiCheck, FiHome, FiTrash2, FiLogOut, FiFileText, FiShield, FiAlertTriangle, FiClock } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const Profile = () => {
-  const { user, userData, refreshUserData, getCurrentPlan, isFreeUser, getSubStatus, logout } = useAuth()
+  const { user, userData, refreshUserData, getCurrentPlan, isFreeUser, getSubStatus, getDaysLeft, getSubscription, logout } = useAuth()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
@@ -41,6 +41,8 @@ const Profile = () => {
 
   const currentPlan = getCurrentPlan()
   const subscriptionStatus = getSubStatus()
+  const daysLeft = getDaysLeft()
+  const subscription = getSubscription()
 
   useEffect(() => {
     if (userData) {
@@ -503,6 +505,14 @@ const Profile = () => {
                   ? t('profile.unlockFeatures', 'Débloquez toutes les fonctionnalités et les participants illimités')
                   : t('profile.currentPlan', 'Votre forfait actuel : {{plan}}', { plan: currentPlan.name })}
               </p>
+              {!isFreeUser() && daysLeft !== null && daysLeft > 0 && (
+                <p className="text-white/90 text-sm mt-1 flex items-center gap-1">
+                  <FiClock className="w-4 h-4" />
+                  {subscription?.cancelAtPeriodEnd
+                    ? t('profile.endsIn', 'Se termine dans {{days}} jours', { days: daysLeft })
+                    : t('profile.renewsIn', 'Renouvellement dans {{days}} jours', { days: daysLeft })}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">

@@ -497,7 +497,7 @@ export default {
       },
       q15: {
         question: 'Kan ik HugoQuiz gratis uitproberen voordat ik een abonnement neem?',
-        answer: 'Absoluut! HugoQuiz biedt:\n• Een permanent gratis plan met essentiële functies\n• Een 14-daagse gratis proefperiode voor betaalde plannen\n• Geen creditcard vereist voor het gratis plan\n\nDe 14-daagse proefperiode geeft u toegang tot ALLE premium functies. U kunt op elk moment zonder kosten opzeggen tijdens de proefperiode.'
+        answer: 'Absoluut! HugoQuiz biedt:\n• Een permanent gratis plan met essentiële functies\n• Een 7-daagse gratis proefperiode voor betaalde plannen\n• Geen creditcard vereist voor het gratis plan\n\nDe 7-daagse proefperiode geeft u toegang tot ALLE premium functies. U kunt op elk moment zonder kosten opzeggen tijdens de proefperiode.'
       }
     },
     docs: {
@@ -614,7 +614,7 @@ export default {
         description: 'Beheer uw profiel, abonnement en voorkeuren.',
         subscription: {
           title: 'Abonnement & Facturering',
-          content: 'Beheer uw abonnement eenvoudig:\n\n• Huidig plan en limieten bekijken\n• Op elk moment van plan wisselen\n• Factuurgeschiedenis\n• Betalingsgegevens bijwerken\n• Annulering met terugbetaling binnen 30 min\n• 14-daagse gratis proefperiode beschikbaar\n• Prioriteitsondersteuning afhankelijk van plan'
+          content: 'Beheer uw abonnement eenvoudig:\n\n• Huidig plan en limieten bekijken\n• Op elk moment van plan wisselen\n• Factuurgeschiedenis\n• Betalingsgegevens bijwerken\n• Annulering met terugbetaling binnen 30 min\n• 7-daagse gratis proefperiode beschikbaar\n• Prioriteitsondersteuning afhankelijk van plan'
         },
         security: {
           title: 'Accountbeveiliging',
@@ -807,23 +807,23 @@ export default {
     article4bis: {
       title: 'ARTIKEL 4 BIS – GRATIS PROEFPERIODE',
       section1Title: '4 bis.1. VOORWAARDEN VAN DE GRATIS PROEFPERIODE',
-      section1Desc: 'De Uitgever biedt nieuwe Gebruikers de mogelijkheid om te profiteren van een gratis proefperiode van VEERTIEN (14) DAGEN voor elk maandabonnement. Dit aanbod is onderworpen aan de volgende voorwaarden:',
+      section1Desc: 'De Uitgever biedt nieuwe Gebruikers de mogelijkheid om te profiteren van een gratis proefperiode van ZEVEN (7) DAGEN voor elk maandabonnement. Dit aanbod is onderworpen aan de volgende voorwaarden:',
       section1Item1: 'De gratis proefperiode is slechts EENMAAL per Gebruiker beschikbaar, ongeacht het gekozen abonnement;',
       section1Item2: 'Als de Gebruiker een gratis proefperiode activeert voor één abonnement, verliest hij/zij permanent het recht op een gratis proefperiode voor alle andere abonnementen;',
       section1Item3: 'Registratie van een betaalmethode (creditcard) is verplicht om de gratis proefperiode te activeren;',
       section1Item4: 'Gebruikers die gratis premium-toegang hebben ontvangen van de beheerder kunnen niet profiteren van de gratis proefperiode.',
       section2Title: '4 bis.2. DUUR EN WERKING',
-      section2Desc: 'Tijdens de veertien (14) dagen proefperiode:',
+      section2Desc: 'Tijdens de zeven (7) dagen proefperiode:',
       section2Item1: 'De Gebruiker profiteert van alle functies van het gekozen abonnement;',
       section2Item2: 'Er wordt geen betaling afgeschreven tijdens de proefperiode;',
       section2Item3: 'De Gebruiker kan op elk moment vóór het einde van de proefperiode kosteloos opzeggen.',
       section3Title: '4 bis.3. EINDE VAN DE PROEFPERIODE',
-      section3Desc: 'Aan het einde van de veertien (14) dagen proefperiode:',
-      section3Item1: 'De eerste betaling wordt automatisch afgeschreven om 00:00 uur (Parijse tijd) op de vijftiende (15e) dag na activering van de proefversie;',
+      section3Desc: 'Aan het einde van de zeven (7) dagen proefperiode:',
+      section3Item1: 'De eerste betaling wordt automatisch afgeschreven om 00:00 uur (Parijse tijd) op de achtste (8e) dag na activering van de proefversie;',
       section3Item2: 'Het Abonnement wordt vervolgens automatisch verlengd volgens de voorwaarden in Artikel 4.3;',
       section3Item3: 'De Gebruiker wordt per e-mail op de hoogte gesteld vóór het einde van de proefperiode.',
       section4Title: '4 bis.4. OPZEGGING TIJDENS DE PROEFPERIODE',
-      section4Desc: 'De Gebruiker kan zijn/haar gratis proefperiode op elk moment tijdens de veertien (14) dagen opzeggen via zijn/haar persoonlijke ruimte. Bij opzegging tijdens de proefperiode:',
+      section4Desc: 'De Gebruiker kan zijn/haar gratis proefperiode op elk moment tijdens de zeven (7) dagen opzeggen via zijn/haar persoonlijke ruimte. Bij opzegging tijdens de proefperiode:',
       section4Item1: 'Er wordt geen betaling afgeschreven;',
       section4Item2: 'De toegang tot premium-functies eindigt onmiddellijk;',
       section4Item3: 'De Gebruiker kan niet langer profiteren van een nieuwe gratis proefperiode, zelfs niet voor een ander abonnement.',
@@ -834,19 +834,26 @@ export default {
       section5Item3: 'De Uitgever behoudt zich het recht voor om een gratis proefperiode te weigeren of te annuleren bij vermoeden van fraude.'
     },
     article5: {
-      title: 'Artikel 5 - Abonnementen en betalingen',
-      section1Title: '5.1. Aangeboden tarieven',
-      section1Desc: 'HugoQuiz biedt verschillende abonnementsformules aan:',
-      section1Free: 'Gratis: Toegang tot basisfuncties, beperkt tot 3 quizzen.',
-      section1Premium: 'Premium: Uitgebreide functies, onbeperkte quizzen, prioritaire ondersteuning.',
-      section1Pro: 'Pro: Alle Premium-functies plus geavanceerde analyses en aangepaste branding.',
-      section1Important: 'Prijzen kunnen zonder voorafgaande kennisgeving worden gewijzigd. Prijswijzigingen zijn niet van toepassing op lopende abonnementen tot hun verlenging.',
-      section2Title: '5.2. Betaling',
-      section2Desc: 'Betalingen worden veilig verwerkt via Stripe. We accepteren Visa, Mastercard en Bancontact.',
-      section3Title: '5.3. Verlenging',
-      section3Desc: 'Abonnementen worden automatisch verlengd aan het einde van elke periode, tenzij ze voor de verlengingsdatum worden opgezegd.',
-      section4Title: '5.4. Opzegging',
-      section4Desc: 'U kunt uw abonnement op elk moment opzeggen in uw account. De opzegging wordt van kracht aan het einde van de huidige periode.'
+      title: 'ARTIKEL 5 – HERROEPINGSRECHT, OPZEGGING EN TERUGBETALING',
+      section1Title: '5.1. BEPERKT HERROEPINGSRECHT',
+      section1Desc: 'Overeenkomstig de bepalingen van het consumentenrecht en gezien de aard van de aangeboden Diensten (digitale inhoud die niet op een materiële drager wordt geleverd en waarvan de uitvoering is begonnen met de voorafgaande uitdrukkelijke toestemming van de consument), beschikt de Gebruiker over een beperkt herroepingsrecht onder de volgende voorwaarden:',
+      section1Important: 'Een volledige terugbetaling van het Abonnement is alleen mogelijk als het annuleringsverzoek binnen DERTIG (30) MINUTEN na het oorspronkelijke afsluiten van het Abonnement wordt ingediend. Na deze termijn wordt voor de lopende Abonnementsperiode geen terugbetaling verleend.',
+      section2Title: '5.2. OPZEGGING VAN DE VERLENGING',
+      section2Desc: 'De Gebruiker kan op elk moment, zonder enige termijnbeperking, via zijn/haar persoonlijke ruimte beslissen om zijn/haar Abonnement niet te verlengen:',
+      section2Important: 'De annulering van de automatische verlenging is OP ELK MOMENT mogelijk, ook in de uren voorafgaand aan de verlengingsdatum. Zodra de annulering is voltooid, vindt er geen nieuwe afschrijving plaats en behoudt de Gebruiker toegang tot de Diensten tot het einde van de lopende Abonnementsperiode. Er wordt geen terugbetaling gedaan.',
+      section3Title: '5.3. GEEN TERUGBETALING',
+      section3Desc: 'De Gebruiker behoudt het recht om zijn/haar Abonnement op elk moment op te zeggen. Indien de opzegging echter plaatsvindt:',
+      section3Item1: 'Meer dan dertig (30) minuten na het oorspronkelijke afsluiten; of',
+      section3Item2: 'Na het begin van een reeds betaalde Abonnementsperiode; of',
+      section3Item3: 'Na een automatische verlenging van het Abonnement',
+      section3NoRefund: 'Er wordt geen terugbetaling, ook geen gedeeltelijke of pro rata, verleend.',
+      section4Title: '5.4. BELANGRIJKE PRECISERINGEN',
+      section4Desc: 'Het herroepingsrecht met terugbetaling van dertig (30) minuten is uitsluitend van toepassing op het oorspronkelijke afsluiten van een Abonnement en niet op latere automatische verlengingen.',
+      section5Title: '5.5. ONMIDDELLIJKE BEËINDIGING VAN HET ABONNEMENT',
+      section5Desc: 'De Gebruiker kan zijn/haar abonnement op elk moment en zonder beperking onmiddellijk beëindigen via zijn/haar persoonlijke ruimte. In dat geval:',
+      section5Item1: 'Het verlies van de voordelen en functies van het abonnement is ONMIDDELLIJK;',
+      section5Item2: 'Er is geen terugbetaling, ook geen gedeeltelijke, mogelijk;',
+      section5Item3: 'De Gebruiker keert onmiddellijk terug naar het gratis abonnement en ontvangt een bevestiging per e-mail.'
     },
     article6: {
       title: 'Artikel 6 - Persoonsgegevens',
@@ -1908,6 +1915,8 @@ export default {
     managePlan: 'Mijn abonnement beheren',
     unlockFeatures: 'Ontgrendel alle functies en onbeperkte deelnemers',
     currentPlan: 'Uw huidige plan: {{plan}}',
+    renewsIn: 'Verlenging over {{days}} dagen',
+    endsIn: 'Eindigt over {{days}} dagen',
     manageSubscription: 'Beheren / Annuleren',
     seePlans: 'Plannen bekijken',
     changePlan: 'Wijzigen',
@@ -2155,8 +2164,31 @@ export default {
     managePayment: 'Betaling beheren',
     changePlan: 'Plan wijzigen',
     cancelSubscription: 'Abonnement annuleren',
-    
-    processing: 'Verwerken...',
+
+    // Annulering
+    cancellation: {
+      title: 'Annulering',
+      willNotRenew: 'Uw abonnement wordt niet verlengd',
+      activeUntil: 'Het blijft actief tot het einde van de huidige periode.',
+      reactivate: 'Verlenging heractiveren',
+      refundAvailable: 'Terugbetaling beschikbaar',
+      refundTimeLeft: 'U heeft nog {{minutes}} minuten om een volledige terugbetaling aan te vragen.',
+      requestRefund: 'Terugbetaling aanvragen',
+      cancelRenewal: 'Verlenging annuleren',
+      cancelRenewalDesc: 'Uw abonnement blijft actief tot het einde van de periode. Er wordt geen terugbetaling gedaan.',
+      cancelRenewalBtn: 'Niet verlengen',
+      confirmRefund: 'Terugbetaling bevestigen',
+      confirmCancel: 'Annulering bevestigen',
+      terminateTitle: 'Mijn abonnement beëindigen',
+      terminateDesc: 'De beëindiging is onmiddellijk: u verliest direct de voordelen van het abonnement en terugbetaling is niet mogelijk.',
+      terminateBtn: 'Onmiddellijk beëindigen',
+      terminateConfirmTitle: 'Abonnement beëindigen?',
+      terminateWarn1: 'Het verlies van de abonnementsvoordelen is onmiddellijk.',
+      terminateWarn2: 'Terugbetaling is niet mogelijk, conform de gebruiksvoorwaarden.',
+      terminateWarn3: 'U keert onmiddellijk terug naar het gratis abonnement.',
+      errorTerminate: 'Fout bij het beëindigen'
+    },
+
     redirectingToStripe: 'Doorsturen naar Stripe...',
     successTitle: 'Betaling geslaagd! 🎉',
     successMessage: 'Uw abonnement is nu actief. Geniet van alle functies!',
@@ -2189,21 +2221,21 @@ export default {
     unlimitedEvents: 'Onbeperkte evenementen',
     noEvents: 'Evenementen niet inbegrepen',
     unlimitedParticipants: 'Onbeperkte deelnemers',
-    startTrial: '14 dagen gratis proberen',
+    startTrial: '7 dagen gratis proberen',
     trialNotEligible: 'U komt niet in aanmerking voor de gratis proefperiode',
     
     // Trial
     trial: {
-      banner: '14 dagen gratis proberen!',
+      banner: '7 dagen gratis proberen!',
       bannerDesc: 'Test alle functies zonder verplichtingen. Op elk moment opzegbaar.',
       cardRequired: 'Creditcard vereist',
       alreadyUsed: 'U heeft uw gratis proefperiode al gebruikt.',
       adminGranted: 'De gratis proefperiode is niet beschikbaar voor accounts die gratis toegang hebben gekregen.',
       notEligible: 'U komt niet in aanmerking voor de gratis proefperiode.',
-      modalTitle: '14 dagen gratis proefperiode',
-      benefit1: 'Volledige toegang tot alle functies gedurende 14 dagen',
+      modalTitle: '7 dagen gratis proefperiode',
+      benefit1: 'Volledige toegang tot alle functies gedurende 7 dagen',
       benefit2: 'Op elk moment opzegbaar vóór het einde van de proefperiode',
-      warning: 'Creditcard vereist. Automatische afschrijving van €{{price}}/maand op dag 15 indien niet opgezegd.',
+      warning: 'Creditcard vereist. Automatische afschrijving van €{{price}}/maand op dag 8 indien niet opgezegd.',
       uniqueOffer: 'De gratis proefperiode is slechts één keer per gebruiker beschikbaar, ongeacht het gekozen abonnement.',
       confirm: 'Proefperiode starten',
       active: 'Gratis proefperiode actief',

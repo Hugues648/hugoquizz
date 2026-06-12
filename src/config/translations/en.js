@@ -511,7 +511,7 @@ export default {
       },
       q15: {
         question: 'Can I try HugoQuiz for free before subscribing?',
-        answer: 'Absolutely! HugoQuiz offers:\n• A permanent free plan with essential features\n• A 14-day free trial for paid plans\n• No credit card required for the free plan\n\nThe 14-day trial gives you access to ALL premium features. You can cancel at any time without charge during the trial period.'
+        answer: 'Absolutely! HugoQuiz offers:\n• A permanent free plan with essential features\n• A 7-day free trial for paid plans\n• No credit card required for the free plan\n\nThe 7-day trial gives you access to ALL premium features. You can cancel at any time without charge during the trial period.'
       }
     },
     docs: {
@@ -628,7 +628,7 @@ export default {
         description: 'Manage your profile, subscription and preferences.',
         subscription: {
           title: 'Subscription & Billing',
-          content: 'Easily manage your subscription:\n\n• View current plan and its limits\n• Change plan at any time\n• Invoice history\n• Update payment information\n• Cancellation with refund within 30 min\n• 14-day free trial available\n• Priority support depending on plan'
+          content: 'Easily manage your subscription:\n\n• View current plan and its limits\n• Change plan at any time\n• Invoice history\n• Update payment information\n• Cancellation with refund within 30 min\n• 7-day free trial available\n• Priority support depending on plan'
         },
         security: {
           title: 'Account Security',
@@ -835,23 +835,23 @@ export default {
     article4bis: {
       title: 'ARTICLE 4 BIS – FREE TRIAL',
       section1Title: '4 bis.1. FREE TRIAL CONDITIONS',
-      section1Desc: 'The Publisher offers new Users the opportunity to benefit from a free trial period of FOURTEEN (14) DAYS for any monthly Subscription. This offer is subject to the following conditions:',
+      section1Desc: 'The Publisher offers new Users the opportunity to benefit from a free trial period of SEVEN (7) DAYS for any monthly Subscription. This offer is subject to the following conditions:',
       section1Item1: 'The free trial is only available ONCE per User, regardless of the plan chosen;',
       section1Item2: 'If the User activates a free trial on one plan, they permanently lose the right to a free trial on all other plans;',
       section1Item3: 'Registration of a payment method (credit card) is mandatory to activate the free trial;',
       section1Item4: 'Users who have received complimentary premium access from the administrator cannot benefit from the free trial.',
       section2Title: '4 bis.2. DURATION AND OPERATION',
-      section2Desc: 'During the fourteen (14) day trial period:',
+      section2Desc: 'During the seven (7) day trial period:',
       section2Item1: 'The User benefits from all features of the chosen plan;',
       section2Item2: 'No payment is debited during the trial period;',
       section2Item3: 'The User may cancel at any time before the end of the trial period at no cost.',
       section3Title: '4 bis.3. END OF TRIAL PERIOD',
-      section3Desc: 'At the end of the fourteen (14) day trial period:',
-      section3Item1: 'The first payment will be automatically debited at 00:00 (Paris time) on the fifteenth (15th) day following trial activation;',
+      section3Desc: 'At the end of the seven (7) day trial period:',
+      section3Item1: 'The first payment will be automatically debited at 00:00 (Paris time) on the eighth (8th) day following trial activation;',
       section3Item2: 'The Subscription will then be automatically renewed according to the conditions set out in Article 4.3;',
       section3Item3: 'The User will be notified by email before the end of the trial period.',
       section4Title: '4 bis.4. CANCELLATION DURING TRIAL',
-      section4Desc: 'The User may cancel their free trial at any time during the fourteen (14) days via their personal space. In case of cancellation during the trial period:',
+      section4Desc: 'The User may cancel their free trial at any time during the seven (7) days via their personal space. In case of cancellation during the trial period:',
       section4Item1: 'No payment will be debited;',
       section4Item2: 'Access to premium features will end immediately;',
       section4Item3: 'The User will no longer be able to benefit from a new free trial, even on another plan.',
@@ -866,17 +866,22 @@ export default {
       section1Title: '5.1. LIMITED RIGHT OF WITHDRAWAL',
       section1Desc: 'In accordance with Article L.221-28 of the French Consumer Code, and given the nature of the Services offered (digital content not supplied on a tangible medium whose execution has begun with the prior express consent of the consumer), the User has a limited right of withdrawal under the following conditions:',
       section1Important: 'A full refund of the Subscription is only possible if the cancellation request is made within THIRTY (30) MINUTES of the initial Subscription. After this period, no refund will be granted for the current Subscription Period.',
-      section2Title: '5.2. SUBSCRIPTION TERMINATION',
-      section2Desc: 'The User may decide at any time not to renew their Subscription. However, for the termination to be effective and prevent automatic renewal:',
-      section2Important: 'The non-renewal request must be made at least FORTY-EIGHT (48) HOURS before the automatic renewal date of the Subscription. Otherwise, the Subscription amount for the following period will be charged, and the User will not be entitled to any refund for this new Subscription Period.',
-      section3Title: '5.3. LATE TERMINATION',
+      section2Title: '5.2. RENEWAL TERMINATION',
+      section2Desc: 'The User may decide at any time, without any time restriction, not to renew their Subscription from their personal space:',
+      section2Important: 'Cancellation of automatic renewal is possible AT ANY TIME, including in the hours preceding the renewal date. Once cancellation is completed, no further payment will be made and the User retains access to the Services until the end of the current Subscription Period. No refund is made.',
+      section3Title: '5.3. NO REFUND',
       section3Desc: 'The User retains the right to terminate their Subscription at any time. However, if termination occurs:',
       section3Item1: 'More than thirty (30) minutes after the initial subscription; or',
-      section3Item2: 'Less than forty-eight (48) hours before the automatic renewal date; or',
+      section3Item2: 'After the start of an already-paid Subscription Period; or',
       section3Item3: 'After an automatic renewal of the Subscription',
-      section3NoRefund: 'No refund, even partial or pro rata, will be granted. The User will continue to benefit from the Services until the expiration of the current Subscription Period.',
+      section3NoRefund: 'No refund, even partial or pro rata, will be granted.',
       section4Title: '5.4. IMPORTANT CLARIFICATIONS',
-      section4Desc: 'The thirty (30) minute right of withdrawal applies exclusively to the initial subscription and does not apply to subsequent automatic renewals. In case of automatic renewal, the provisions of Article 5.2 regarding the forty-eight (48) hour period apply.'
+      section4Desc: 'The thirty (30) minute right of withdrawal with refund applies exclusively to the initial subscription and does not apply to subsequent automatic renewals.',
+      section5Title: '5.5. IMMEDIATE PLAN TERMINATION',
+      section5Desc: 'The User may, at any time and without restriction, immediately terminate their plan from their personal space. In this case:',
+      section5Item1: 'The loss of plan benefits and features is IMMEDIATE;',
+      section5Item2: 'No refund, even partial, is possible;',
+      section5Item3: 'The User immediately returns to the free plan and receives an email confirmation.'
     },
     article6: {
       title: 'ARTICLE 6 – USER OBLIGATIONS',
@@ -2063,6 +2068,8 @@ export default {
     managePlan: 'Manage my subscription',
     unlockFeatures: 'Unlock all features and unlimited participants',
     currentPlan: 'Your current plan: {{plan}}',
+    renewsIn: 'Renews in {{days}} days',
+    endsIn: 'Ends in {{days}} days',
     manageSubscription: 'Manage / Cancel',
     seePlans: 'See plans',
     changePlan: 'Change',
@@ -2489,8 +2496,31 @@ export default {
     managePayment: 'Manage payment',
     changePlan: 'Change plan',
     cancelSubscription: 'Cancel subscription',
-    
-    // Checkout
+
+    // Cancellation
+    cancellation: {
+      title: 'Cancellation',
+      willNotRenew: 'Your subscription will not be renewed',
+      activeUntil: 'It remains active until the end of the current period.',
+      reactivate: 'Reactivate renewal',
+      refundAvailable: 'Refund available',
+      refundTimeLeft: 'You have {{minutes}} minutes left to request a full refund.',
+      requestRefund: 'Request a refund',
+      cancelRenewal: 'Cancel renewal',
+      cancelRenewalDesc: 'Your subscription will remain active until the end of the period. No refund will be made.',
+      cancelRenewalBtn: 'Do not renew',
+      confirmRefund: 'Confirm refund',
+      confirmCancel: 'Confirm cancellation',
+      terminateTitle: 'Terminate my plan',
+      terminateDesc: 'Termination is immediate: you lose your plan benefits right away and no refund is possible.',
+      terminateBtn: 'Terminate immediately',
+      terminateConfirmTitle: 'Terminate plan?',
+      terminateWarn1: 'The loss of plan benefits is immediate.',
+      terminateWarn2: 'No refund is possible, in accordance with the terms of use.',
+      terminateWarn3: 'You will immediately return to the free plan.',
+      errorTerminate: 'Error during termination'
+    },
+
     processing: 'Processing...',
     redirectingToStripe: 'Redirecting to Stripe...',
     successTitle: 'Payment successful! 🎉',
@@ -2525,21 +2555,21 @@ export default {
     unlimitedEvents: 'Unlimited events',
     noEvents: 'Events not included',
     unlimitedParticipants: 'Unlimited participants',
-    startTrial: '14-day free trial',
+    startTrial: '7-day free trial',
     trialNotEligible: 'You are not eligible for the free trial',
     
     // Trial
     trial: {
-      banner: '14-day free trial!',
+      banner: '7-day free trial!',
       bannerDesc: 'Test all features with no commitment. Cancel anytime.',
       cardRequired: 'Credit card required',
       alreadyUsed: 'You have already used your free trial.',
       adminGranted: 'Free trial is not available for accounts that received complimentary access.',
       notEligible: 'You are not eligible for the free trial.',
-      modalTitle: '14-day free trial',
-      benefit1: 'Full access to all features for 14 days',
+      modalTitle: '7-day free trial',
+      benefit1: 'Full access to all features for 7 days',
       benefit2: 'Cancel anytime before the trial ends',
-      warning: 'Credit card required. Automatic charge of €{{price}}/month on day 15 if not cancelled.',
+      warning: 'Credit card required. Automatic charge of €{{price}}/month on day 8 if not cancelled.',
       uniqueOffer: 'The free trial is only available once per user, regardless of the plan chosen.',
       confirm: 'Start trial',
       active: 'Free trial active',

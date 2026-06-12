@@ -142,6 +142,13 @@ const CGU = () => {
               <p className="mt-3"><strong>{t('cgu.article5.section3NoRefund')}</strong></p>
               <p className="mt-4 font-semibold text-amber-800">{t('cgu.article5.section4Title')}</p>
               <p>{t('cgu.article5.section4Desc')}</p>
+              <p className="mt-4 font-semibold text-amber-800">{t('cgu.article5.section5Title')}</p>
+              <p>{t('cgu.article5.section5Desc')}</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>{t('cgu.article5.section5Item1')}</li>
+                <li>{t('cgu.article5.section5Item2')}</li>
+                <li>{t('cgu.article5.section5Item3')}</li>
+              </ul>
             </div>
           </section>
 

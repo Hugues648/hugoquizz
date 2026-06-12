@@ -6,7 +6,7 @@ import { FiMail, FiLock, FiUser, FiSave, FiAlertCircle, FiCheck, FiHelpCircle, F
 import toast from 'react-hot-toast'
 import { useResetTutorial } from '../components/Tutorial'
 import { LanguageSelectorCompact } from '../components/LanguageSelector'
-import { createPortalSession, checkRefundEligibility, requestRefund, cancelRenewal, reactivateSubscription, renounceAccess, cancelTrial } from '../services/stripe'
+import { createPortalSession, checkRefundEligibility, requestRefund, cancelRenewal, reactivateSubscription, renounceAccess, cancelTrial, terminateSubscription } from '../services/stripe'
 import { getDaysUntilExpiration } from '../config/subscriptions'
 
 const Settings = () => {
@@ -29,6 +29,7 @@ const Settings = () => {
   const [cancellationInfo, setCancellationInfo] = useState(null)
   const [cancellationLoading, setCancellationLoading] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showTerminateModal, setShowTerminateModal] = useState(false)
 
   const currentPlan = getCurrentPlan()
   const subscription = getSubscription()
@@ -121,6 +122,21 @@ const Settings = () => {
     } catch (error) {
       console.error('Reactivate error:', error)
       toast.error(error.message || t('subscription.cancellation.errorReactivate', 'Erreur lors de la réactivation'))
+    } finally {
+      setCancellationLoading(false)
+    }
+  }
+
+  const handleTerminateNow = async () => {
+    setCancellationLoading(true)
+    try {
+      const result = await terminateSubscription()
+      toast.success(result.message)
+      setShowTerminateModal(false)
+      window.location.reload()
+    } catch (error) {
+      console.error('Terminate error:', error)
+      toast.error(error.message || t('subscription.cancellation.errorTerminate', 'Erreur lors de la résiliation'))
     } finally {
       setCancellationLoading(false)
     }
@@ -623,24 +639,30 @@ const Settings = () => {
                       </div>
                     )}
                     
-                    {/* Cannot cancel (less than 48h) - only show if NOT in trial */}
-                    {!cancellationInfo.canCancelRenewal && !cancellationInfo.canRefund && !subscription?.isTrialing && subscription?.status !== 'trialing' && (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                        <div className="flex items-start gap-3">
-                          <FiAlertCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-red-800">
-                              {t('subscription.cancellation.tooLate', 'Annulation non disponible')}
-                            </p>
-                            <p className="text-sm text-red-700">
-                              {t('subscription.cancellation.tooLateDesc', 
-                                'Vous êtes à moins de 48 heures du renouvellement ({{hours}}h restantes). Le prochain paiement sera effectué. Vous pourrez annuler après le renouvellement.',
-                                { hours: cancellationInfo.hoursUntilRenewal || 0 })}
-                            </p>
-                          </div>
-                        </div>
+                  </div>
+                )}
+
+                {/* Résiliation immédiate du forfait - toujours possible (hors essai) */}
+                {!subscription?.isTrialing && subscription?.status !== 'trialing' && (
+                  <div className="mt-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-red-800">
+                          {t('subscription.cancellation.terminateTitle', 'Résilier mon forfait')}
+                        </p>
+                        <p className="text-sm text-red-700">
+                          {t('subscription.cancellation.terminateDesc', 'La résiliation est immédiate : vous perdez aussitôt les avantages du forfait et aucun remboursement n\'est possible.')}
+                        </p>
+                        <button
+                          onClick={() => setShowTerminateModal(true)}
+                          className="mt-3 btn bg-red-600 text-white hover:bg-red-700 text-sm flex items-center gap-2"
+                        >
+                          <FiXCircle />
+                          {t('subscription.cancellation.terminateBtn', 'Résilier immédiatement')}
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -839,6 +861,50 @@ const Settings = () => {
                   <>
                     <FiXCircle />
                     {t('common.confirm', 'Confirmer')}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terminate Plan Confirmation Modal */}
+      {showTerminateModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full animate-scale-in shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiAlertCircle className="text-red-500 text-3xl" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">
+                {t('subscription.cancellation.terminateConfirmTitle', 'Résilier le forfait ?')}
+              </h3>
+            </div>
+            <div className="bg-red-50 rounded-xl p-4 mb-6 text-sm text-red-700 space-y-2">
+              <p><strong>{t('subscription.cancellation.terminateWarn1', 'La perte des avantages du forfait est immédiate.')}</strong></p>
+              <p>{t('subscription.cancellation.terminateWarn2', 'Aucun remboursement n\'est possible, conformément aux conditions d\'utilisation.')}</p>
+              <p>{t('subscription.cancellation.terminateWarn3', 'Vous reviendrez immédiatement au forfait gratuit.')}</p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowTerminateModal(false)}
+                disabled={cancellationLoading}
+                className="flex-1 btn btn-ghost py-3"
+              >
+                {t('common.cancel', 'Annuler')}
+              </button>
+              <button
+                onClick={handleTerminateNow}
+                disabled={cancellationLoading}
+                className="flex-1 btn bg-red-600 text-white hover:bg-red-700 py-3 flex items-center justify-center gap-2"
+              >
+                {cancellationLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <FiXCircle />
+                    {t('subscription.cancellation.terminateBtn', 'Résilier immédiatement')}
                   </>
                 )}
               </button>

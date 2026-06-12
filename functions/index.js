@@ -794,7 +794,7 @@ const PLAN_DURATIONS = {
 }
 
 // Trial configuration
-const TRIAL_PERIOD_DAYS = 14
+const TRIAL_PERIOD_DAYS = 7
 
 // ==================== CHECK TRIAL ELIGIBILITY ====================
 exports.checkTrialEligibility = functions.https.onCall(async (data, context) => {
@@ -1636,6 +1636,19 @@ async function handleCheckoutComplete(session) {
 
   await db.collection('users').doc(userId).update(updateData)
 
+  // Email de confirmation (demarrage abonnement ou essai)
+  try {
+    const uSnap = await db.collection('users').doc(userId).get()
+    const u = uSnap.data()
+    if (u?.email) {
+      const lang = u.preferredLanguage || 'fr'
+      const action = isInTrial ? 'trial_started' : 'subscription_started'
+      const dateStr = trialEnd ? trialEnd.toLocaleDateString(lang) : ''
+      const c = getPaymentEmailContent(action, lang, { date: dateStr })
+      await sendEmail(u.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#7c3aed'))
+    }
+  } catch (e) { console.error('checkout email error:', e) }
+
   console.log(`Subscription activated for user ${userId}, plan: ${planId}, trial: ${isInTrial}`)
 }
 
@@ -1845,6 +1858,18 @@ async function handlePaymentSucceeded(invoice) {
       read: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
+  }
+
+  // Email de confirmation pour les renouvellements (inclut le 1er paiement automatique apres l'essai gratuit)
+  if (invoice.billing_reason === 'subscription_cycle' && !userData.subscription?.paymentFailed) {
+    try {
+      if (userData.email) {
+        const userLang = userData.preferredLanguage || 'fr'
+        const dateStr = expiresAt ? expiresAt.toLocaleDateString(userLang) : ''
+        const c = getPaymentEmailContent('renewal', userLang, { date: dateStr })
+        await sendEmail(userData.email, c.subject, accountEmailWrapper(userLang, c.title, c.body, '#7c3aed'))
+      }
+    } catch (e) { console.error('renewal email error:', e) }
   }
   
   console.log(`Payment succeeded and subscription restored for user ${userId}, plan: ${planId}`)
@@ -2619,8 +2644,9 @@ exports.checkRefundEligibility = functions.https.onCall(async (data, context) =>
     const expiresAt = subscription.expiresAt.toDate()
     const hoursRemaining = (expiresAt - now) / (1000 * 60 * 60)
     hoursUntilRenewal = Math.floor(hoursRemaining)
-    canCancelRenewal = hoursRemaining > 48 && !subscription.cancelAtPeriodEnd
   }
+  // L'annulation du renouvellement est toujours possible tant qu'elle n'est pas deja faite
+  canCancelRenewal = !subscription.cancelAtPeriodEnd
   
   return {
     canRefund,
@@ -2701,6 +2727,15 @@ exports.requestRefund = functions.https.onCall(async (data, context) => {
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
     
+    try {
+      const u = userDoc.data()
+      if (u?.email) {
+        const lang = u.preferredLanguage || 'fr'
+        const c = getPaymentEmailContent('refunded', lang)
+        await sendEmail(u.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#16a34a'))
+      }
+    } catch (e) { console.error('refund email error:', e) }
+    
     return { success: true, message: 'Remboursement effectué avec succès' }
   } catch (error) {
     console.error('Refund error:', error)
@@ -2722,22 +2757,7 @@ exports.cancelRenewal = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('failed-precondition', 'Aucun abonnement Stripe actif')
   }
   
-  if (!subscription.expiresAt) {
-    throw new functions.https.HttpsError('failed-precondition', 'Date d\'expiration non définie')
-  }
-  
-  const expiresAt = subscription.expiresAt.toDate()
-  const now = new Date()
-  const hoursRemaining = (expiresAt - now) / (1000 * 60 * 60)
-  
-  // Check 48 hour window
-  if (hoursRemaining <= 48) {
-    throw new functions.https.HttpsError(
-      'failed-precondition', 
-      `Annulation impossible : moins de 48 heures avant le renouvellement (${Math.floor(hoursRemaining)}h restantes). Le prochain paiement sera effectué.`
-    )
-  }
-  
+  // L'annulation du renouvellement est TOUJOURS possible (aucune restriction de delai)
   try {
     // Cancel at period end in Stripe
     await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
@@ -2750,6 +2770,19 @@ exports.cancelRenewal = functions.https.onCall(async (data, context) => {
       'subscription.cancelledAt': admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
+
+    // Email de confirmation
+    try {
+      const u = userDoc.data()
+      if (u?.email) {
+        const lang = u.preferredLanguage || 'fr'
+        const endDate = subscription.expiresAt
+          ? subscription.expiresAt.toDate().toLocaleDateString(lang)
+          : ''
+        const c = getPaymentEmailContent('renewal_cancelled', lang, { date: endDate })
+        await sendEmail(u.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#d97706'))
+      }
+    } catch (e) { console.error('cancelRenewal email error:', e) }
     
     return { 
       success: true, 
@@ -2801,6 +2834,14 @@ exports.cancelTrial = functions.https.onCall(async (data, context) => {
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
     
+    try {
+      if (userData?.email) {
+        const lang = userData.preferredLanguage || 'fr'
+        const c = getPaymentEmailContent('trial_cancelled', lang)
+        await sendEmail(userData.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#d97706'))
+      }
+    } catch (e) { console.error('cancelTrial email error:', e) }
+    
     return { 
       success: true, 
       message: 'Votre essai gratuit a été résilié. Vous êtes revenu au forfait gratuit.' 
@@ -2837,6 +2878,15 @@ exports.reactivateSubscription = functions.https.onCall(async (data, context) =>
       'subscription.cancelledAt': null,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
+
+    try {
+      const u = userDoc.data()
+      if (u?.email) {
+        const lang = u.preferredLanguage || 'fr'
+        const c = getPaymentEmailContent('renewal_reactivated', lang)
+        await sendEmail(u.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#16a34a'))
+      }
+    } catch (e) { console.error('reactivate email error:', e) }
     
     return { 
       success: true, 
@@ -2845,6 +2895,63 @@ exports.reactivateSubscription = functions.https.onCall(async (data, context) =>
   } catch (error) {
     console.error('Reactivate error:', error)
     throw new functions.https.HttpsError('internal', 'Erreur lors de la réactivation')
+  }
+})
+
+// Résiliation immédiate du forfait (perte des avantages immédiate, aucun remboursement) — toujours possible
+exports.cancelSubscriptionImmediately = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in')
+  }
+
+  const userId = context.auth.uid
+  const userDoc = await db.collection('users').doc(userId).get()
+  const userData = userDoc.data()
+  const subscription = userData?.subscription
+
+  if (!subscription || !subscription.planId || subscription.planId === 'free' || subscription.planId === 'FREE') {
+    throw new functions.https.HttpsError('failed-precondition', 'Aucun abonnement actif à résilier')
+  }
+
+  try {
+    // Annulation immédiate côté Stripe (sans remboursement)
+    if (subscription.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(subscription.stripeSubscriptionId)
+      } catch (stripeErr) {
+        console.error('Stripe immediate cancel error (continuing):', stripeErr.message)
+      }
+    }
+
+    // Retour immédiat au forfait gratuit (perte des avantages immédiate)
+    await db.collection('users').doc(userId).update({
+      'subscription.planId': 'free',
+      'subscription.status': 'cancelled',
+      'subscription.stripeSubscriptionId': null,
+      'subscription.cancelAtPeriodEnd': false,
+      'subscription.isTrialing': false,
+      'subscription.trialEnd': null,
+      'subscription.expiresAt': admin.firestore.FieldValue.serverTimestamp(),
+      'subscription.terminatedAt': admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    })
+
+    // Email de confirmation
+    try {
+      if (userData?.email) {
+        const lang = userData.preferredLanguage || 'fr'
+        const c = getPaymentEmailContent('terminated', lang)
+        await sendEmail(userData.email, c.subject, accountEmailWrapper(lang, c.title, c.body, '#dc2626'))
+      }
+    } catch (e) { console.error('terminate email error:', e) }
+
+    return {
+      success: true,
+      message: 'Votre forfait a été résilié. Vous êtes revenu au forfait gratuit, sans remboursement.'
+    }
+  } catch (error) {
+    console.error('Immediate cancellation error:', error)
+    throw new functions.https.HttpsError('internal', 'Erreur lors de la résiliation du forfait')
   }
 })
 
@@ -4275,6 +4382,91 @@ function serviceEmailWrapper(title, bodyHtml, accent = '#7c3aed') {
   </div>
 </body>
 </html>`
+}
+
+// Branded email wrapper for account/payment actions (with CTA + links to hugoquiz.com)
+function accountEmailWrapper(lang, title, bodyHtml, accent = '#7c3aed') {
+  const L = ['fr', 'en', 'de', 'nl'].includes(lang) ? lang : 'fr'
+  const labels = {
+    fr: { cta: 'Accéder à HugoQuiz', home: 'Accueil', space: 'Mon espace', help: 'Aide', greeting: 'Bonjour' },
+    en: { cta: 'Go to HugoQuiz', home: 'Home', space: 'My space', help: 'Help', greeting: 'Hello' },
+    de: { cta: 'Zu HugoQuiz', home: 'Startseite', space: 'Mein Bereich', help: 'Hilfe', greeting: 'Hallo' },
+    nl: { cta: 'Naar HugoQuiz', home: 'Home', space: 'Mijn ruimte', help: 'Help', greeting: 'Hallo' }
+  }[L]
+  return `
+<!DOCTYPE html>
+<html lang="${L}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; background-color:#f8f9fa;">
+  <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg, ${accent}, #db2777); padding:32px 20px; text-align:center;">
+      <h1 style="color:#ffffff; margin:0; font-size:22px;">${title}</h1>
+    </div>
+    <div style="padding:32px 30px; color:#374151; font-size:15px; line-height:1.6;">
+      ${bodyHtml}
+      <div style="text-align:center; margin:28px 0 8px;">
+        <a href="https://hugoquiz.com/dashboard" style="display:inline-block; background:linear-gradient(135deg, ${accent}, #db2777); color:#ffffff; text-decoration:none; padding:12px 30px; border-radius:9999px; font-weight:600;">${labels.cta}</a>
+      </div>
+    </div>
+    <div style="padding:20px 30px; background:#f9fafb; color:#9ca3af; font-size:12px; text-align:center;">
+      <a href="https://hugoquiz.com" style="color:${accent}; text-decoration:none;">${labels.home}</a> &nbsp;·&nbsp;
+      <a href="https://hugoquiz.com/dashboard" style="color:${accent}; text-decoration:none;">${labels.space}</a> &nbsp;·&nbsp;
+      <a href="https://hugoquiz.com/help" style="color:${accent}; text-decoration:none;">${labels.help}</a>
+      <p style="margin:12px 0 0;">© HugoQuiz</p>
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+// Localized content for subscription / payment confirmation emails
+function getPaymentEmailContent(action, lang, params = {}) {
+  const L = ['fr', 'en', 'de', 'nl'].includes(lang) ? lang : 'fr'
+  const plan = params.planName || ''
+  const date = params.date || ''
+  const dict = {
+    fr: {
+      subscription_started: { subject: '✅ Votre abonnement HugoQuiz est actif', title: 'Abonnement activé', body: `<p>Votre abonnement${plan ? ` <strong>${plan}</strong>` : ''} est désormais actif. Merci de votre confiance !</p>` },
+      trial_started: { subject: '🎁 Votre essai gratuit HugoQuiz a commencé', title: 'Essai gratuit démarré', body: `<p>Votre essai gratuit de 7 jours est lancé. Profitez de toutes les fonctionnalités !</p>${date ? `<p>Sauf résiliation de votre part, le paiement automatique de votre forfait sera effectué le <strong>${date}</strong>.</p>` : ''}` },
+      renewal: { subject: '🔄 Paiement reçu — abonnement renouvelé', title: 'Paiement confirmé', body: `<p>Nous avons bien reçu votre paiement. Votre abonnement${plan ? ` <strong>${plan}</strong>` : ''} est actif${date ? ` jusqu'au <strong>${date}</strong>` : ''}.</p>` },
+      renewal_cancelled: { subject: 'ℹ️ Renouvellement annulé', title: 'Renouvellement annulé', body: `<p>Le renouvellement automatique de votre abonnement a bien été annulé. Vous conservez tous vos avantages jusqu'à la fin de la période en cours${date ? ` (le <strong>${date}</strong>)` : ''}.</p><p>Aucun remboursement n'est effectué. Vous pouvez réactiver le renouvellement à tout moment.</p>` },
+      renewal_reactivated: { subject: '✅ Renouvellement réactivé', title: 'Renouvellement réactivé', body: `<p>Le renouvellement automatique de votre abonnement est de nouveau actif. Aucune action supplémentaire n'est requise.</p>` },
+      trial_cancelled: { subject: 'ℹ️ Essai gratuit résilié', title: 'Essai résilié', body: `<p>Votre essai gratuit a été résilié. Vous êtes revenu au forfait gratuit et aucun paiement ne sera effectué.</p>` },
+      refunded: { subject: '💸 Remboursement effectué', title: 'Remboursement effectué', body: `<p>Votre abonnement a été annulé et intégralement remboursé. Vous êtes revenu au forfait gratuit.</p>` },
+      terminated: { subject: '⚠️ Forfait résilié', title: 'Forfait résilié', body: `<p>Votre forfait a été résilié immédiatement à votre demande.</p><p><strong>La perte des avantages du forfait est immédiate</strong> et, conformément à nos conditions d'utilisation, aucun remboursement n'est effectué.</p>` }
+    },
+    en: {
+      subscription_started: { subject: '✅ Your HugoQuiz subscription is active', title: 'Subscription activated', body: `<p>Your${plan ? ` <strong>${plan}</strong>` : ''} subscription is now active. Thank you for your trust!</p>` },
+      trial_started: { subject: '🎁 Your HugoQuiz free trial has started', title: 'Free trial started', body: `<p>Your 7-day free trial has started. Enjoy all the features!</p>${date ? `<p>Unless you cancel, automatic payment for your plan will be charged on <strong>${date}</strong>.</p>` : ''}` },
+      renewal: { subject: '🔄 Payment received — subscription renewed', title: 'Payment confirmed', body: `<p>We have received your payment. Your${plan ? ` <strong>${plan}</strong>` : ''} subscription is active${date ? ` until <strong>${date}</strong>` : ''}.</p>` },
+      renewal_cancelled: { subject: 'ℹ️ Renewal cancelled', title: 'Renewal cancelled', body: `<p>The automatic renewal of your subscription has been cancelled. You keep all your benefits until the end of the current period${date ? ` (on <strong>${date}</strong>)` : ''}.</p><p>No refund is issued. You can reactivate renewal at any time.</p>` },
+      renewal_reactivated: { subject: '✅ Renewal reactivated', title: 'Renewal reactivated', body: `<p>The automatic renewal of your subscription is active again. No further action is required.</p>` },
+      trial_cancelled: { subject: 'ℹ️ Free trial cancelled', title: 'Trial cancelled', body: `<p>Your free trial has been cancelled. You are back on the free plan and no payment will be made.</p>` },
+      refunded: { subject: '💸 Refund processed', title: 'Refund processed', body: `<p>Your subscription has been cancelled and fully refunded. You are back on the free plan.</p>` },
+      terminated: { subject: '⚠️ Plan terminated', title: 'Plan terminated', body: `<p>Your plan has been terminated immediately at your request.</p><p><strong>The loss of plan benefits is immediate</strong> and, in accordance with our terms of use, no refund is issued.</p>` }
+    },
+    de: {
+      subscription_started: { subject: '✅ Ihr HugoQuiz-Abonnement ist aktiv', title: 'Abonnement aktiviert', body: `<p>Ihr${plan ? ` <strong>${plan}</strong>` : ''} Abonnement ist jetzt aktiv. Vielen Dank für Ihr Vertrauen!</p>` },
+      trial_started: { subject: '🎁 Ihre kostenlose HugoQuiz-Testphase hat begonnen', title: 'Kostenlose Testphase gestartet', body: `<p>Ihre 7-tägige kostenlose Testphase hat begonnen. Genießen Sie alle Funktionen!</p>${date ? `<p>Sofern Sie nicht kündigen, wird die automatische Zahlung Ihres Tarifs am <strong>${date}</strong> ausgeführt.</p>` : ''}` },
+      renewal: { subject: '🔄 Zahlung erhalten — Abonnement verlängert', title: 'Zahlung bestätigt', body: `<p>Wir haben Ihre Zahlung erhalten. Ihr${plan ? ` <strong>${plan}</strong>` : ''} Abonnement ist aktiv${date ? ` bis zum <strong>${date}</strong>` : ''}.</p>` },
+      renewal_cancelled: { subject: 'ℹ️ Verlängerung storniert', title: 'Verlängerung storniert', body: `<p>Die automatische Verlängerung Ihres Abonnements wurde storniert. Sie behalten alle Vorteile bis zum Ende des laufenden Zeitraums${date ? ` (am <strong>${date}</strong>)` : ''}.</p><p>Es erfolgt keine Rückerstattung. Sie können die Verlängerung jederzeit reaktivieren.</p>` },
+      renewal_reactivated: { subject: '✅ Verlängerung reaktiviert', title: 'Verlängerung reaktiviert', body: `<p>Die automatische Verlängerung Ihres Abonnements ist wieder aktiv. Es ist keine weitere Aktion erforderlich.</p>` },
+      trial_cancelled: { subject: 'ℹ️ Kostenlose Testphase gekündigt', title: 'Testphase gekündigt', body: `<p>Ihre kostenlose Testphase wurde gekündigt. Sie sind zum kostenlosen Tarif zurückgekehrt und es erfolgt keine Zahlung.</p>` },
+      refunded: { subject: '💸 Rückerstattung durchgeführt', title: 'Rückerstattung durchgeführt', body: `<p>Ihr Abonnement wurde storniert und vollständig erstattet. Sie sind zum kostenlosen Tarif zurückgekehrt.</p>` },
+      terminated: { subject: '⚠️ Tarif gekündigt', title: 'Tarif gekündigt', body: `<p>Ihr Tarif wurde auf Ihren Wunsch sofort gekündigt.</p><p><strong>Der Verlust der Tarifvorteile erfolgt sofort</strong> und gemäß unseren Nutzungsbedingungen wird keine Rückerstattung gewährt.</p>` }
+    },
+    nl: {
+      subscription_started: { subject: '✅ Je HugoQuiz-abonnement is actief', title: 'Abonnement geactiveerd', body: `<p>Je${plan ? ` <strong>${plan}</strong>` : ''} abonnement is nu actief. Bedankt voor je vertrouwen!</p>` },
+      trial_started: { subject: '🎁 Je gratis HugoQuiz-proefperiode is gestart', title: 'Gratis proefperiode gestart', body: `<p>Je gratis proefperiode van 7 dagen is gestart. Geniet van alle functies!</p>${date ? `<p>Tenzij je opzegt, wordt de automatische betaling van je abonnement uitgevoerd op <strong>${date}</strong>.</p>` : ''}` },
+      renewal: { subject: '🔄 Betaling ontvangen — abonnement verlengd', title: 'Betaling bevestigd', body: `<p>We hebben je betaling ontvangen. Je${plan ? ` <strong>${plan}</strong>` : ''} abonnement is actief${date ? ` tot <strong>${date}</strong>` : ''}.</p>` },
+      renewal_cancelled: { subject: 'ℹ️ Verlenging geannuleerd', title: 'Verlenging geannuleerd', body: `<p>De automatische verlenging van je abonnement is geannuleerd. Je behoudt al je voordelen tot het einde van de huidige periode${date ? ` (op <strong>${date}</strong>)` : ''}.</p><p>Er wordt geen terugbetaling gedaan. Je kunt de verlenging op elk moment opnieuw activeren.</p>` },
+      renewal_reactivated: { subject: '✅ Verlenging opnieuw geactiveerd', title: 'Verlenging opnieuw geactiveerd', body: `<p>De automatische verlenging van je abonnement is weer actief. Er is geen verdere actie vereist.</p>` },
+      trial_cancelled: { subject: 'ℹ️ Gratis proefperiode opgezegd', title: 'Proefperiode opgezegd', body: `<p>Je gratis proefperiode is opgezegd. Je bent terug op het gratis abonnement en er wordt geen betaling gedaan.</p>` },
+      refunded: { subject: '💸 Terugbetaling verwerkt', title: 'Terugbetaling verwerkt', body: `<p>Je abonnement is geannuleerd en volledig terugbetaald. Je bent terug op het gratis abonnement.</p>` },
+      terminated: { subject: '⚠️ Abonnement beëindigd', title: 'Abonnement beëindigd', body: `<p>Je abonnement is op jouw verzoek onmiddellijk beëindigd.</p><p><strong>Het verlies van de abonnementsvoordelen is onmiddellijk</strong> en, in overeenstemming met onze gebruiksvoorwaarden, wordt er geen terugbetaling gedaan.</p>` }
+    }
+  }
+  return (dict[L] && dict[L][action]) || dict.fr[action]
 }
 
 // ---- Verification submitted: notify admin ----

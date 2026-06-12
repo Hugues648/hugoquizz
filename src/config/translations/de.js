@@ -497,7 +497,7 @@ export default {
       },
       q15: {
         question: 'Kann ich HugoQuiz kostenlos testen, bevor ich ein Abo abschließe?',
-        answer: 'Absolut! HugoQuiz bietet:\n• Einen dauerhaft kostenlosen Plan mit wesentlichen Funktionen\n• Eine 14-tägige kostenlose Testversion für kostenpflichtige Pläne\n• Keine Kreditkarte für den kostenlosen Plan erforderlich\n\nDie 14-tägige Testversion gibt Ihnen Zugang zu ALLEN Premium-Funktionen. Sie können während des Testzeitraums jederzeit ohne Kosten kündigen.'
+        answer: 'Absolut! HugoQuiz bietet:\n• Einen dauerhaft kostenlosen Plan mit wesentlichen Funktionen\n• Eine 7-tägige kostenlose Testversion für kostenpflichtige Pläne\n• Keine Kreditkarte für den kostenlosen Plan erforderlich\n\nDie 7-tägige Testversion gibt Ihnen Zugang zu ALLEN Premium-Funktionen. Sie können während des Testzeitraums jederzeit ohne Kosten kündigen.'
       }
     },
     docs: {
@@ -614,7 +614,7 @@ export default {
         description: 'Verwalten Sie Ihr Profil, Abonnement und Einstellungen.',
         subscription: {
           title: 'Abonnement & Abrechnung',
-          content: 'Verwalten Sie Ihr Abonnement einfach:\n\n• Aktuellen Plan und seine Grenzen anzeigen\n• Plan jederzeit wechseln\n• Rechnungsverlauf\n• Zahlungsinformationen aktualisieren\n• Stornierung mit Rückerstattung innerhalb von 30 Min\n• 14-tägige kostenlose Testversion verfügbar\n• Priority-Support je nach Plan'
+          content: 'Verwalten Sie Ihr Abonnement einfach:\n\n• Aktuellen Plan und seine Grenzen anzeigen\n• Plan jederzeit wechseln\n• Rechnungsverlauf\n• Zahlungsinformationen aktualisieren\n• Stornierung mit Rückerstattung innerhalb von 30 Min\n• 7-tägige kostenlose Testversion verfügbar\n• Priority-Support je nach Plan'
         },
         security: {
           title: 'Kontosicherheit',
@@ -807,23 +807,23 @@ export default {
     article4bis: {
       title: 'ARTIKEL 4 BIS – KOSTENLOSE TESTVERSION',
       section1Title: '4 bis.1. BEDINGUNGEN DER KOSTENLOSEN TESTVERSION',
-      section1Desc: 'Der Herausgeber bietet neuen Nutzern die Möglichkeit, eine kostenlose Testperiode von VIERZEHN (14) TAGEN für jedes Monatsabonnement zu nutzen. Dieses Angebot unterliegt folgenden Bedingungen:',
+      section1Desc: 'Der Herausgeber bietet neuen Nutzern die Möglichkeit, eine kostenlose Testperiode von SIEBEN (7) TAGEN für jedes Monatsabonnement zu nutzen. Dieses Angebot unterliegt folgenden Bedingungen:',
       section1Item1: 'Die kostenlose Testversion ist nur EINMAL pro Nutzer verfügbar, unabhängig vom gewählten Tarif;',
       section1Item2: 'Wenn der Nutzer eine kostenlose Testversion für einen Tarif aktiviert, verliert er dauerhaft das Recht auf eine kostenlose Testversion für alle anderen Tarife;',
       section1Item3: 'Die Registrierung einer Zahlungsmethode (Kreditkarte) ist zur Aktivierung der kostenlosen Testversion erforderlich;',
       section1Item4: 'Nutzer, die einen kostenlosen Premium-Zugang vom Administrator erhalten haben, können die kostenlose Testversion nicht nutzen.',
       section2Title: '4 bis.2. DAUER UND FUNKTIONSWEISE',
-      section2Desc: 'Während der vierzehntägigen (14) Testperiode:',
+      section2Desc: 'Während der siebentägigen (7) Testperiode:',
       section2Item1: 'Der Nutzer profitiert von allen Funktionen des gewählten Tarifs;',
       section2Item2: 'Während der Testperiode erfolgt keine Abbuchung;',
       section2Item3: 'Der Nutzer kann jederzeit vor Ende der Testperiode kostenlos kündigen.',
       section3Title: '4 bis.3. ENDE DER TESTPERIODE',
-      section3Desc: 'Am Ende der vierzehntägigen (14) Testperiode:',
-      section3Item1: 'Die erste Zahlung wird automatisch um 00:00 Uhr (Pariser Zeit) am fünfzehnten (15.) Tag nach Aktivierung der Testversion abgebucht;',
+      section3Desc: 'Am Ende der siebentägigen (7) Testperiode:',
+      section3Item1: 'Die erste Zahlung wird automatisch um 00:00 Uhr (Pariser Zeit) am achten (8.) Tag nach Aktivierung der Testversion abgebucht;',
       section3Item2: 'Das Abonnement wird dann gemäß den in Artikel 4.3 festgelegten Bedingungen automatisch verlängert;',
       section3Item3: 'Der Nutzer wird vor Ende der Testperiode per E-Mail benachrichtigt.',
       section4Title: '4 bis.4. KÜNDIGUNG WÄHREND DER TESTVERSION',
-      section4Desc: 'Der Nutzer kann seine kostenlose Testversion jederzeit während der vierzehn (14) Tage über seinen persönlichen Bereich kündigen. Bei Kündigung während der Testperiode:',
+      section4Desc: 'Der Nutzer kann seine kostenlose Testversion jederzeit während der sieben (7) Tage über seinen persönlichen Bereich kündigen. Bei Kündigung während der Testperiode:',
       section4Item1: 'Es erfolgt keine Abbuchung;',
       section4Item2: 'Der Zugang zu Premium-Funktionen endet sofort;',
       section4Item3: 'Der Nutzer kann keine neue kostenlose Testversion mehr nutzen, auch nicht für einen anderen Tarif.',
@@ -834,19 +834,26 @@ export default {
       section5Item3: 'Der Herausgeber behält sich das Recht vor, eine kostenlose Testversion bei Verdacht auf Betrug abzulehnen oder zu stornieren.'
     },
     article5: {
-      title: 'Artikel 5 - Abonnements und Zahlungen',
-      section1Title: '5.1. Angebotene Tarife',
-      section1Desc: 'HugoQuiz bietet verschiedene Abonnementformeln an:',
-      section1Free: 'Gratis: Zugang zu grundlegenden Funktionen, begrenzt auf 3 Quiz.',
-      section1Premium: 'Premium: Erweiterte Funktionen, unbegrenzte Quiz, bevorzugter Support.',
-      section1Pro: 'Pro: Alle Premium-Funktionen plus erweiterte Analysen und benutzerdefiniertes Branding.',
-      section1Important: 'Die Preise können ohne vorherige Ankündigung geändert werden. Preisänderungen betreffen keine laufenden Abonnements bis zu ihrer Verlängerung.',
-      section2Title: '5.2. Zahlung',
-      section2Desc: 'Zahlungen werden sicher über Stripe abgewickelt. Wir akzeptieren Visa, Mastercard und Bancomat.',
-      section3Title: '5.3. Verlängerung',
-      section3Desc: 'Abonnements werden automatisch am Ende jedes Zeitraums verlängert, es sei denn, sie werden vor dem Verlängerungsdatum gekündigt.',
-      section4Title: '5.4. Kündigung',
-      section4Desc: 'Sie können Ihr Abonnement jederzeit in Ihrem Konto kündigen. Die Kündigung wird am Ende des aktuellen Zeitraums wirksam.'
+      title: 'ARTIKEL 5 – WIDERRUFSRECHT, KÜNDIGUNG UND RÜCKERSTATTUNG',
+      section1Title: '5.1. EINGESCHRÄNKTES WIDERRUFSRECHT',
+      section1Desc: 'Gemäß den Bestimmungen des Verbraucherrechts und angesichts der Art der angebotenen Dienste (digitale Inhalte, die nicht auf einem materiellen Datenträger bereitgestellt werden und deren Ausführung mit der vorherigen ausdrücklichen Zustimmung des Verbrauchers begonnen hat) verfügt der Nutzer über ein eingeschränktes Widerrufsrecht unter den folgenden Bedingungen:',
+      section1Important: 'Eine vollständige Rückerstattung des Abonnements ist nur möglich, wenn der Stornierungsantrag innerhalb von DREISSIG (30) MINUTEN nach dem ursprünglichen Abschluss des Abonnements gestellt wird. Nach Ablauf dieser Frist wird für den laufenden Abonnementzeitraum keine Rückerstattung gewährt.',
+      section2Title: '5.2. KÜNDIGUNG DER VERLÄNGERUNG',
+      section2Desc: 'Der Nutzer kann jederzeit und ohne jegliche Fristbeschränkung über seinen persönlichen Bereich entscheiden, sein Abonnement nicht zu verlängern:',
+      section2Important: 'Die Kündigung der automatischen Verlängerung ist JEDERZEIT möglich, auch in den Stunden vor dem Verlängerungsdatum. Sobald die Kündigung erfolgt ist, erfolgt keine weitere Abbuchung und der Nutzer behält bis zum Ende des laufenden Abonnementzeitraums Zugang zu den Diensten. Es erfolgt keine Rückerstattung.',
+      section3Title: '5.3. KEINE RÜCKERSTATTUNG',
+      section3Desc: 'Der Nutzer behält das Recht, sein Abonnement jederzeit zu kündigen. Wenn die Kündigung jedoch erfolgt:',
+      section3Item1: 'Mehr als dreißig (30) Minuten nach dem ursprünglichen Abschluss; oder',
+      section3Item2: 'Nach Beginn eines bereits bezahlten Abonnementzeitraums; oder',
+      section3Item3: 'Nach einer automatischen Verlängerung des Abonnements',
+      section3NoRefund: 'Es wird keine Rückerstattung, auch keine teilweise oder anteilige, gewährt.',
+      section4Title: '5.4. WICHTIGE HINWEISE',
+      section4Desc: 'Das Widerrufsrecht mit Rückerstattung von dreißig (30) Minuten gilt ausschließlich für den ursprünglichen Abschluss eines Abonnements und nicht für nachfolgende automatische Verlängerungen.',
+      section5Title: '5.5. SOFORTIGE KÜNDIGUNG DES TARIFS',
+      section5Desc: 'Der Nutzer kann seinen Tarif jederzeit und ohne Einschränkung über seinen persönlichen Bereich sofort kündigen. In diesem Fall:',
+      section5Item1: 'Der Verlust der Vorteile und Funktionen des Tarifs ist SOFORTIG;',
+      section5Item2: 'Es ist keine Rückerstattung, auch keine teilweise, möglich;',
+      section5Item3: 'Der Nutzer kehrt sofort zum kostenlosen Tarif zurück und erhält eine Bestätigung per E-Mail.'
     },
     article6: {
       title: 'Artikel 6 - Personenbezogene Daten',
@@ -1945,6 +1952,8 @@ export default {
     managePlan: 'Mein Abonnement verwalten',
     unlockFeatures: 'Alle Funktionen und unbegrenzte Teilnehmer freischalten',
     currentPlan: 'Ihr aktueller Tarif: {{plan}}',
+    renewsIn: 'Verlängerung in {{days}} Tagen',
+    endsIn: 'Endet in {{days}} Tagen',
     manageSubscription: 'Verwalten / Kündigen',
     seePlans: 'Tarife ansehen',
     changePlan: 'Ändern',
@@ -2278,8 +2287,31 @@ export default {
     managePayment: 'Zahlung verwalten',
     changePlan: 'Plan ändern',
     cancelSubscription: 'Abonnement kündigen',
-    
-    processing: 'Wird verarbeitet...',
+
+    // Kündigung
+    cancellation: {
+      title: 'Kündigung',
+      willNotRenew: 'Ihr Abonnement wird nicht verlängert',
+      activeUntil: 'Es bleibt bis zum Ende des aktuellen Zeitraums aktiv.',
+      reactivate: 'Verlängerung reaktivieren',
+      refundAvailable: 'Rückerstattung verfügbar',
+      refundTimeLeft: 'Sie haben noch {{minutes}} Minuten, um eine vollständige Rückerstattung zu beantragen.',
+      requestRefund: 'Rückerstattung beantragen',
+      cancelRenewal: 'Verlängerung kündigen',
+      cancelRenewalDesc: 'Ihr Abonnement bleibt bis zum Ende des Zeitraums aktiv. Es wird keine Rückerstattung vorgenommen.',
+      cancelRenewalBtn: 'Nicht verlängern',
+      confirmRefund: 'Rückerstattung bestätigen',
+      confirmCancel: 'Kündigung bestätigen',
+      terminateTitle: 'Meinen Tarif kündigen',
+      terminateDesc: 'Die Kündigung erfolgt sofort: Sie verlieren sofort die Tarifvorteile und keine Rückerstattung ist möglich.',
+      terminateBtn: 'Sofort kündigen',
+      terminateConfirmTitle: 'Tarif kündigen?',
+      terminateWarn1: 'Der Verlust der Tarifvorteile erfolgt sofort.',
+      terminateWarn2: 'Keine Rückerstattung ist möglich, gemäß den Nutzungsbedingungen.',
+      terminateWarn3: 'Sie kehren sofort zum kostenlosen Tarif zurück.',
+      errorTerminate: 'Fehler bei der Kündigung'
+    },
+
     redirectingToStripe: 'Weiterleitung zu Stripe...',
     successTitle: 'Zahlung erfolgreich! 🎉',
     successMessage: 'Ihr Abonnement ist jetzt aktiv. Genießen Sie alle Funktionen!',
@@ -2312,21 +2344,21 @@ export default {
     unlimitedEvents: 'Unbegrenzte Events',
     noEvents: 'Events nicht inklusive',
     unlimitedParticipants: 'Unbegrenzte Teilnehmer',
-    startTrial: '14 Tage kostenlos testen',
+    startTrial: '7 Tage kostenlos testen',
     trialNotEligible: 'Sie sind nicht für die kostenlose Testversion berechtigt',
     
     // Trial
     trial: {
-      banner: '14 Tage kostenlos testen!',
+      banner: '7 Tage kostenlos testen!',
       bannerDesc: 'Testen Sie alle Funktionen ohne Verpflichtung. Jederzeit kündbar.',
       cardRequired: 'Kreditkarte erforderlich',
       alreadyUsed: 'Sie haben Ihre kostenlose Testversion bereits genutzt.',
       adminGranted: 'Die kostenlose Testversion ist nicht für Konten verfügbar, die kostenlosen Zugang erhalten haben.',
       notEligible: 'Sie sind nicht für die kostenlose Testversion berechtigt.',
-      modalTitle: '14 Tage kostenlose Testversion',
-      benefit1: 'Voller Zugang zu allen Funktionen für 14 Tage',
+      modalTitle: '7 Tage kostenlose Testversion',
+      benefit1: 'Voller Zugang zu allen Funktionen für 7 Tage',
       benefit2: 'Jederzeit vor Ende der Testphase kündbar',
-      warning: 'Kreditkarte erforderlich. Automatische Abbuchung von {{price}}€/Monat am 15. Tag, wenn nicht gekündigt.',
+      warning: 'Kreditkarte erforderlich. Automatische Abbuchung von {{price}}€/Monat am 8. Tag, wenn nicht gekündigt.',
       uniqueOffer: 'Die kostenlose Testversion ist nur einmal pro Benutzer verfügbar, unabhängig vom gewählten Tarif.',
       confirm: 'Testversion starten',
       active: 'Kostenlose Testversion aktiv',

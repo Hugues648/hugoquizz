@@ -223,7 +223,7 @@ const QuestionnaireResponses = () => {
                       <div className="border-t border-gray-200 pt-4">
                         <h4 className="font-medium text-gray-700 mb-3">{t('questionnaireResponses.responseDetails', 'Détail des réponses')}</h4>
                         <div className="space-y-2">
-                          {session.answers?.map((answer, index) => (
+                          {Array.isArray(session.answers) && session.answers.map((answer, index) => (
                             <div 
                               key={index}
                               className="p-3 rounded-lg border bg-white border-gray-200"

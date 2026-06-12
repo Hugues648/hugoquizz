@@ -96,6 +96,13 @@ export const reactivateSubscription = async () => {
   return result.data
 }
 
+// Terminate plan immediately (immediate loss of benefits, no refund)
+export const terminateSubscription = async () => {
+  const terminate = httpsCallable(functions, 'cancelSubscriptionImmediately')
+  const result = await terminate()
+  return result.data
+}
+
 // ==================== ADMIN-GRANTED ACCESS FUNCTIONS ====================
 
 // Revoke admin-granted access (admin only)

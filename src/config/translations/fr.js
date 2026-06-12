@@ -622,23 +622,23 @@ export default {
     article4bis: {
       title: 'ARTICLE 4 BIS – ESSAI GRATUIT',
       section1Title: '4 bis.1. CONDITIONS DE L\'ESSAI GRATUIT',
-      section1Desc: 'L\'Éditeur propose aux nouveaux Utilisateurs la possibilité de bénéficier d\'une période d\'essai gratuit de QUATORZE (14) JOURS pour tout Abonnement mensuel. Cette offre est soumise aux conditions suivantes :',
+      section1Desc: 'L\'Éditeur propose aux nouveaux Utilisateurs la possibilité de bénéficier d\'une période d\'essai gratuit de SEPT (7) JOURS pour tout Abonnement mensuel. Cette offre est soumise aux conditions suivantes :',
       section1Item1: 'L\'essai gratuit n\'est disponible qu\'UNE SEULE FOIS par Utilisateur, quel que soit le forfait choisi ;',
       section1Item2: 'Si l\'Utilisateur active un essai gratuit sur un forfait, il perd définitivement le droit à l\'essai gratuit sur tous les autres forfaits ;',
       section1Item3: 'L\'enregistrement d\'un moyen de paiement (carte bancaire) est obligatoire pour activer l\'essai gratuit ;',
       section1Item4: 'L\'Utilisateur ayant bénéficié d\'un accès premium offert par l\'administrateur ne peut pas bénéficier de l\'essai gratuit.',
       section2Title: '4 bis.2. DURÉE ET FONCTIONNEMENT',
-      section2Desc: 'Pendant la période d\'essai de quatorze (14) jours :',
+      section2Desc: 'Pendant la période d\'essai de sept (7) jours :',
       section2Item1: 'L\'Utilisateur bénéficie de toutes les fonctionnalités du forfait choisi ;',
       section2Item2: 'Aucun prélèvement n\'est effectué pendant la durée de l\'essai ;',
       section2Item3: 'L\'Utilisateur peut résilier à tout moment avant la fin de la période d\'essai sans frais.',
       section3Title: '4 bis.3. FIN DE LA PÉRIODE D\'ESSAI',
-      section3Desc: 'À l\'issue de la période d\'essai de quatorze (14) jours :',
-      section3Item1: 'Le premier prélèvement sera automatiquement effectué à 00h00 (heure de Paris) le quinzième (15ème) jour suivant l\'activation de l\'essai ;',
+      section3Desc: 'À l\'issue de la période d\'essai de sept (7) jours :',
+      section3Item1: 'Le premier prélèvement sera automatiquement effectué à 00h00 (heure de Paris) le huitième (8ème) jour suivant l\'activation de l\'essai ;',
       section3Item2: 'L\'Abonnement sera ensuite reconduit tacitement selon les conditions prévues à l\'Article 4.3 ;',
       section3Item3: 'L\'Utilisateur sera notifié par email avant la fin de la période d\'essai.',
       section4Title: '4 bis.4. RÉSILIATION PENDANT L\'ESSAI',
-      section4Desc: 'L\'Utilisateur peut résilier son essai gratuit à tout moment pendant les quatorze (14) jours via son espace personnel. En cas de résiliation pendant la période d\'essai :',
+      section4Desc: 'L\'Utilisateur peut résilier son essai gratuit à tout moment pendant les sept (7) jours via son espace personnel. En cas de résiliation pendant la période d\'essai :',
       section4Item1: 'Aucun prélèvement ne sera effectué ;',
       section4Item2: 'L\'accès aux fonctionnalités premium prendra fin immédiatement ;',
       section4Item3: 'L\'Utilisateur ne pourra plus bénéficier d\'un nouvel essai gratuit, même sur un autre forfait.',
@@ -653,17 +653,22 @@ export default {
       section1Title: '5.1. DROIT DE RÉTRACTATION LIMITÉ',
       section1Desc: 'Conformément aux dispositions de l\'article L.221-28 du Code de la consommation, et compte tenu de la nature des Services proposés (contenu numérique non fourni sur un support matériel dont l\'exécution a commencé avec l\'accord préalable exprès du consommateur), l\'Utilisateur bénéficie d\'un droit de rétractation limité dans les conditions suivantes :',
       section1Important: 'Le remboursement intégral de l\'Abonnement n\'est possible que si la demande d\'annulation est effectuée dans un délai de TRENTE (30) MINUTES suivant la souscription initiale de l\'Abonnement. Passé ce délai, aucun remboursement ne pourra être accordé pour la Période d\'Abonnement en cours.',
-      section2Title: '5.2. RÉSILIATION DE L\'ABONNEMENT',
-      section2Desc: 'L\'Utilisateur peut à tout moment décider de ne pas renouveler son Abonnement. Toutefois, pour que la résiliation soit effective et empêche le renouvellement automatique :',
-      section2Important: 'La demande de non-renouvellement doit être formulée au minimum QUARANTE-HUIT (48) HEURES avant la date de renouvellement automatique de l\'Abonnement. À défaut, le prélèvement du montant de l\'Abonnement pour la période suivante sera effectué, et l\'Utilisateur ne pourra prétendre à aucun remboursement au titre de cette nouvelle Période d\'Abonnement.',
-      section3Title: '5.3. RÉSILIATION HORS DÉLAI',
+      section2Title: '5.2. RÉSILIATION DU RENOUVELLEMENT',
+      section2Desc: 'L\'Utilisateur peut à tout moment, et sans aucune restriction de délai, décider de ne pas renouveler son Abonnement depuis son espace personnel :',
+      section2Important: 'L\'annulation du renouvellement automatique est possible à TOUT MOMENT, y compris dans les heures précédant la date de renouvellement. Une fois l\'annulation effectuée, aucun nouveau prélèvement ne sera réalisé et l\'Utilisateur conserve l\'accès aux Services jusqu\'à la fin de la Période d\'Abonnement en cours. Aucun remboursement n\'est effectué.',
+      section3Title: '5.3. ABSENCE DE REMBOURSEMENT',
       section3Desc: 'L\'Utilisateur conserve le droit de résilier son Abonnement à tout moment. Néanmoins, si la résiliation intervient :',
       section3Item1: 'Plus de trente (30) minutes après la souscription initiale ; ou',
-      section3Item2: 'Moins de quarante-huit (48) heures avant la date de renouvellement automatique ; ou',
+      section3Item2: 'Après le début d\'une Période d\'Abonnement déjà payée ; ou',
       section3Item3: 'Après un renouvellement automatique de l\'Abonnement',
-      section3NoRefund: 'Aucun remboursement, même partiel ou au prorata temporis, ne sera accordé. L\'Utilisateur continuera de bénéficier des Services jusqu\'à l\'expiration de la Période d\'Abonnement en cours.',
+      section3NoRefund: 'Aucun remboursement, même partiel ou au prorata temporis, ne sera accordé.',
       section4Title: '5.4. PRÉCISIONS IMPORTANTES',
-      section4Desc: 'Le droit de rétractation de trente (30) minutes s\'applique exclusivement à la souscription initiale d\'un Abonnement et ne s\'applique pas aux renouvellements automatiques subséquents. En cas de renouvellement automatique, les dispositions de l\'article 5.2 relatives au délai de quarante-huit (48) heures s\'appliquent.'
+      section4Desc: 'Le droit de rétractation avec remboursement de trente (30) minutes s\'applique exclusivement à la souscription initiale d\'un Abonnement et ne s\'applique pas aux renouvellements automatiques subséquents.',
+      section5Title: '5.5. RÉSILIATION IMMÉDIATE DU FORFAIT',
+      section5Desc: 'L\'Utilisateur peut, à tout moment et sans restriction, résilier immédiatement son forfait depuis son espace personnel. Dans ce cas :',
+      section5Item1: 'La perte des avantages et fonctionnalités du forfait est IMMÉDIATE ;',
+      section5Item2: 'Aucun remboursement, même partiel, n\'est possible ;',
+      section5Item3: 'L\'Utilisateur revient immédiatement au forfait gratuit et reçoit une confirmation par email.'
     },
     article6: {
       title: 'ARTICLE 6 – OBLIGATIONS DE L\'UTILISATEUR',
@@ -1851,6 +1856,8 @@ export default {
     managePlan: 'Gérer mon abonnement',
     unlockFeatures: 'Débloquez toutes les fonctionnalités et les participants illimités',
     currentPlan: 'Votre forfait actuel : {{plan}}',
+    renewsIn: 'Renouvellement dans {{days}} jours',
+    endsIn: 'Se termine dans {{days}} jours',
     manageSubscription: 'Gérer / Résilier',
     seePlans: 'Voir les forfaits',
     changePlan: 'Changer',
@@ -2308,7 +2315,15 @@ export default {
       tooLate: 'Annulation non disponible',
       tooLateDesc: 'Vous êtes à moins de 48 heures du renouvellement ({{hours}}h restantes). Le prochain paiement sera effectué. Vous pourrez annuler après le renouvellement.',
       confirmRefund: 'Confirmer le remboursement',
-      confirmCancel: 'Confirmer l\'annulation'
+      confirmCancel: 'Confirmer l\'annulation',
+      terminateTitle: 'Résilier mon forfait',
+      terminateDesc: 'La résiliation est immédiate : vous perdez aussitôt les avantages du forfait et aucun remboursement n\'est possible.',
+      terminateBtn: 'Résilier immédiatement',
+      terminateConfirmTitle: 'Résilier le forfait ?',
+      terminateWarn1: 'La perte des avantages du forfait est immédiate.',
+      terminateWarn2: 'Aucun remboursement n\'est possible, conformément aux conditions d\'utilisation.',
+      terminateWarn3: 'Vous reviendrez immédiatement au forfait gratuit.',
+      errorTerminate: 'Erreur lors de la résiliation'
     },
     
     // Guarantees
@@ -2332,21 +2347,21 @@ export default {
     unlimitedEvents: 'Événements illimités',
     noEvents: 'Événements non inclus',
     unlimitedParticipants: 'Participants illimités',
-    startTrial: 'Essai gratuit 14 jours',
+    startTrial: 'Essai gratuit 7 jours',
     trialNotEligible: 'Vous n\'êtes pas éligible à l\'essai gratuit',
     
     // Trial
     trial: {
-      banner: 'Essai gratuit de 14 jours !',
+      banner: 'Essai gratuit de 7 jours !',
       bannerDesc: 'Testez toutes les fonctionnalités sans engagement. Annulable à tout moment.',
       cardRequired: 'Carte bancaire requise',
       alreadyUsed: 'Vous avez déjà utilisé votre essai gratuit.',
       adminGranted: 'L\'essai gratuit n\'est pas disponible pour les comptes ayant bénéficié d\'un accès offert.',
       notEligible: 'Vous n\'êtes pas éligible à l\'essai gratuit.',
-      modalTitle: 'Essai gratuit de 14 jours',
-      benefit1: 'Accès complet à toutes les fonctionnalités pendant 14 jours',
+      modalTitle: 'Essai gratuit de 7 jours',
+      benefit1: 'Accès complet à toutes les fonctionnalités pendant 7 jours',
       benefit2: 'Annulable à tout moment avant la fin de l\'essai',
-      warning: 'Carte bancaire requise. Prélèvement automatique de {{price}}€/mois à J+15 si non résilié.',
+      warning: 'Carte bancaire requise. Prélèvement automatique de {{price}}€/mois à J+8 si non résilié.',
       uniqueOffer: 'L\'essai gratuit n\'est disponible qu\'une seule fois par utilisateur, quel que soit le forfait choisi.',
       confirm: 'Démarrer l\'essai',
       active: 'Essai gratuit en cours',
@@ -2933,7 +2948,7 @@ export default {
       },
       q15: {
         question: 'Puis-je essayer HugoQuiz gratuitement avant de m\'abonner ?',
-        answer: 'Absolument ! HugoQuiz propose :\n• Un forfait gratuit permanent avec les fonctionnalités essentielles\n• Un essai gratuit de 14 jours pour les forfaits payants\n• Aucune carte bancaire requise pour le forfait gratuit\n\nL\'essai de 14 jours vous donne accès à TOUTES les fonctionnalités premium. Vous pouvez annuler à tout moment sans frais pendant la période d\'essai.'
+        answer: 'Absolument ! HugoQuiz propose :\n• Un forfait gratuit permanent avec les fonctionnalités essentielles\n• Un essai gratuit de 7 jours pour les forfaits payants\n• Aucune carte bancaire requise pour le forfait gratuit\n\nL\'essai de 7 jours vous donne accès à TOUTES les fonctionnalités premium. Vous pouvez annuler à tout moment sans frais pendant la période d\'essai.'
       }
     },
     
@@ -3059,7 +3074,7 @@ export default {
         description: 'Gérez votre profil, abonnement et préférences.',
         subscription: {
           title: 'Abonnement & Facturation',
-          content: 'Gérez votre abonnement facilement :\n\n• Voir le forfait actuel et ses limites\n• Changer de forfait à tout moment\n• Historique des factures\n• Mise à jour des informations de paiement\n• Annulation avec remboursement sous 30 min\n• Essai gratuit de 14 jours disponible\n• Support prioritaire selon le forfait'
+          content: 'Gérez votre abonnement facilement :\n\n• Voir le forfait actuel et ses limites\n• Changer de forfait à tout moment\n• Historique des factures\n• Mise à jour des informations de paiement\n• Annulation avec remboursement sous 30 min\n• Essai gratuit de 7 jours disponible\n• Support prioritaire selon le forfait'
         },
         security: {
           title: 'Sécurité du compte',
