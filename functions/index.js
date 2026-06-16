@@ -816,9 +816,11 @@ exports.checkTrialEligibility = functions.https.onCall(async (data, context) => 
   }
 
   // Not eligible if the user has ever taken any subscription (whatever the plan).
+  // stripeCustomerId persists even after a downgrade to free, so it is the reliable
+  // signal that the user already subscribed at least once.
   const sub = userData?.subscription || {}
   const hasPaidPlan = sub.planId && sub.planId !== 'free'
-  if (userData?.hasSubscribed || hasPaidPlan || sub.stripeSubscriptionId || sub.terminatedAt) {
+  if (userData?.hasSubscribed || hasPaidPlan || sub.stripeCustomerId || sub.stripeSubscriptionId || sub.terminatedAt) {
     return {
       eligible: false,
       reason: 'already_subscribed'
@@ -959,7 +961,7 @@ exports.createCheckoutSessionCallable = functions.https.onCall(async (data, cont
       }
       // Verify user hasn't already taken any subscription (whatever the plan)
       const sub = userData?.subscription || {}
-      if (userData?.hasSubscribed || (sub.planId && sub.planId !== 'free') || sub.stripeSubscriptionId || sub.terminatedAt) {
+      if (userData?.hasSubscribed || (sub.planId && sub.planId !== 'free') || sub.stripeCustomerId || sub.stripeSubscriptionId || sub.terminatedAt) {
         throw new functions.https.HttpsError('failed-precondition', 'Not eligible for trial: already subscribed')
       }
       // Verify user hasn't had admin-granted access
@@ -1758,6 +1760,7 @@ async function handleSubscriptionDeleted(subscription) {
   
   // Downgrade to free plan
   await db.collection('users').doc(userDoc.id).update({
+    hasSubscribed: true,
     'subscription.planId': 'free',
     'subscription.status': 'expired',
     'subscription.stripeSubscriptionId': null,
