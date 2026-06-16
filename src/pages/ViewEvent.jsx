@@ -442,6 +442,10 @@ export default function ViewEvent() {
   const [existingContribution, setExistingContribution] = useState(null)
   const [expandedDescriptions, setExpandedDescriptions] = useState({})
 
+  // Current visitor's browser fingerprint — used so an anonymous reserver can still
+  // see their own name (only them and the organizer), while others see "anonyme".
+  const myFingerprint = useMemo(() => generateFingerprint(), [])
+
   // Check if visitor already registered (using localStorage as primary, Firestore as fallback)
   useEffect(() => {
     const checkExistingVisitor = async () => {
@@ -911,7 +915,8 @@ export default function ViewEvent() {
         guestName: reserveForm.guestName.trim(),
         message: reserveForm.message.trim() || null,
         isAnonymous: reserveForm.isAnonymous,
-        quantity: gift.allowMultiple ? quantity : 1
+        quantity: gift.allowMultiple ? quantity : 1,
+        fingerprint: generateFingerprint()
       })
       
       setShowReserveModal(null)
@@ -1679,16 +1684,18 @@ export default function ViewEvent() {
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {(() => {
-                            const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous)
-                            const anonymousSelections = gift.selections.filter(sel => sel.isAnonymous)
+                            const isMine = (sel) => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint
+                            const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous || isMine(sel))
+                            const anonymousSelections = gift.selections.filter(sel => sel.isAnonymous && !isMine(sel))
                             const anonymousTotal = anonymousSelections.reduce((sum, sel) => sum + (sel.quantity || 1), 0)
                             return (
                               <>
                                 {visibleSelections.map(sel => {
                                   const qty = sel.quantity || 1
+                                  const mine = isMine(sel)
                                   return (
-                                    <span key={sel.id} className="inline-flex items-center px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                                      {qty > 1 ? `${qty}× ` : ''}{sel.guestName}
+                                    <span key={sel.id} className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${mine ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                      {qty > 1 ? `${qty}× ` : ''}{sel.guestName}{mine ? ` (${t('events.view.you')})` : ''}
                                     </span>
                                   )
                                 })}
@@ -1701,6 +1708,11 @@ export default function ViewEvent() {
                             )
                           })()}
                         </div>
+                        {gift.selections.some(sel => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint) && (
+                          <p className="text-[11px] text-purple-500 mt-2 flex items-center gap-1">
+                            🔒 {t('events.view.anonymousSelfNote')}
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -1713,15 +1725,19 @@ export default function ViewEvent() {
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {(() => {
-                            const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous)
-                            const anonymousCount = gift.selections.filter(sel => sel.isAnonymous).length
+                            const isMine = (sel) => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint
+                            const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous || isMine(sel))
+                            const anonymousCount = gift.selections.filter(sel => sel.isAnonymous && !isMine(sel)).length
                             return (
                               <>
-                                {visibleSelections.map(sel => (
-                                  <span key={sel.id} className="inline-flex items-center px-2 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-medium">
-                                    {sel.guestName}
-                                  </span>
-                                ))}
+                                {visibleSelections.map(sel => {
+                                  const mine = isMine(sel)
+                                  return (
+                                    <span key={sel.id} className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${mine ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'}`}>
+                                      {sel.guestName}{mine ? ` (${t('events.view.you')})` : ''}
+                                    </span>
+                                  )
+                                })}
                                 {anonymousCount > 0 && (
                                   <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                                     {anonymousCount > 1 ? `${anonymousCount}× ` : ''}anonyme{anonymousCount > 1 ? 's' : ''}
@@ -1731,6 +1747,11 @@ export default function ViewEvent() {
                             )
                           })()}
                         </div>
+                        {gift.selections.some(sel => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint) && (
+                          <p className="text-[11px] text-purple-500 mt-2 flex items-center gap-1">
+                            🔒 {t('events.view.anonymousSelfNote')}
+                          </p>
+                        )}
                       </div>
                     )}
 

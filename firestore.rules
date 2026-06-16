@@ -469,5 +469,25 @@ service cloud.firestore {
       // Owner or admin can delete
       allow delete: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
     }
+
+    // Service reviews / ratings (left by visitors, comments moderated by admin)
+    match /serviceReviews/{reviewId} {
+      // Public can read approved reviews; the service owner & admins can read all
+      allow read: if resource.data.status == 'approved' ||
+                     (isAuthenticated() && resource.data.ownerId == request.auth.uid) ||
+                     isAdmin();
+
+      // Anyone (including non-authenticated visitors) can submit a review with a valid 1-5 rating
+      allow create: if request.resource.data.rating is number &&
+                    request.resource.data.rating >= 1 &&
+                    request.resource.data.rating <= 5 &&
+                    request.resource.data.serviceId is string;
+
+      // Only admins can moderate (approve/reject) a review
+      allow update: if isAdmin();
+
+      // Admin, or the service owner, can delete a review
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+    }
   }
 }

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   FiCheck, FiX, FiSlash, FiTrash2, FiEye, FiFileText, FiVideo, FiUser, FiShield,
-  FiBriefcase, FiRefreshCw, FiExternalLink, FiPlusCircle
+  FiBriefcase, FiRefreshCw, FiExternalLink, FiPlusCircle, FiStar
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   getPendingVerifications, updateVerificationStatus,
-  getAllServices, updateServiceStatus, deleteService, createService
+  getAllServices, updateServiceStatus, deleteService, createService,
+  getPendingReviews, updateServiceReviewStatus
 } from '../../services/firestore'
 import { categoryLabel, typeLabel, ID_DOCUMENT_FALLBACK } from '../../config/serviceCategories'
 import { DEMO_SERVICES } from '../../config/demoServices'
@@ -54,6 +55,7 @@ export default function AdminServices() {
   const [tab, setTab] = useState('verifications')
   const [verifications, setVerifications] = useState([])
   const [services, setServices] = useState([])
+  const [pendingReviews, setPendingReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [seeding, setSeeding] = useState(false)
@@ -62,9 +64,10 @@ export default function AdminServices() {
   const load = async () => {
     setLoading(true)
     try {
-      const [v, s] = await Promise.all([getPendingVerifications(), getAllServices()])
+      const [v, s, r] = await Promise.all([getPendingVerifications(), getAllServices(), getPendingReviews()])
       setVerifications(v)
       setServices(s)
+      setPendingReviews(r)
     } catch (e) {
       console.error(e)
       toast.error(t('common.error', 'Erreur'))
@@ -135,6 +138,22 @@ export default function AdminServices() {
       setServices((prev) => prev.filter((x) => x.id !== s.id))
       setModal(null)
       toast.success(t('admin.services.serviceDeleted', 'Service supprimé'))
+    } catch (e) {
+      console.error(e)
+      toast.error(t('common.error', 'Erreur'))
+    }
+  }
+
+  // ----- Review moderation actions -----
+  const moderateReview = async (r, status) => {
+    try {
+      await updateServiceReviewStatus(r.id, status)
+      setPendingReviews((prev) => prev.filter((x) => x.id !== r.id))
+      toast.success(
+        status === 'approved'
+          ? t('admin.services.reviewApproved', 'Avis publié')
+          : t('admin.services.reviewRejected', 'Avis rejeté')
+      )
     } catch (e) {
       console.error(e)
       toast.error(t('common.error', 'Erreur'))
@@ -228,6 +247,15 @@ export default function AdminServices() {
             <FiBriefcase /> {t('admin.services.servicesList', 'Services')}
             {pendingServicesCount > 0 && (
               <span className="bg-amber-400 text-amber-900 px-1.5 rounded-full text-xs">{pendingServicesCount}</span>
+            )}
+          </button>
+          <button
+            onClick={() => setTab('reviews')}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ${tab === 'reviews' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+          >
+            <FiStar /> {t('admin.services.reviews', 'Avis')}
+            {pendingReviews.length > 0 && (
+              <span className="bg-amber-400 text-amber-900 px-1.5 rounded-full text-xs">{pendingReviews.length}</span>
             )}
           </button>
         </div>
@@ -376,6 +404,54 @@ export default function AdminServices() {
                   <button onClick={() => setModal({ kind: 'deleteService', item: s })}
                     className="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-semibold flex items-center gap-1">
                     <FiTrash2 /> {t('common.delete', 'Supprimer')}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Reviews moderation */}
+      {tab === 'reviews' && (
+        <div className="space-y-4">
+          {pendingReviews.length === 0 ? (
+            <p className="text-center text-gray-400 py-10">{t('admin.services.noReviews', 'Aucun avis en attente de validation.')}</p>
+          ) : (
+            pendingReviews.map((r) => (
+              <div key={r.id} className="border border-gray-200 rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
+                    {(r.authorName || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 truncate">{r.authorName || t('services.reviews.anonymous', 'Anonyme')}</p>
+                    <p className="text-sm text-gray-500 truncate">{r.businessName || ''}</p>
+                  </div>
+                  <span className="ml-auto inline-flex items-center gap-1 font-semibold">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <FiStar key={i} className={`w-4 h-4 ${i <= (r.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} />
+                    ))}
+                    <span className="text-gray-700 ml-1">{r.rating}/5</span>
+                  </span>
+                </div>
+                {r.comment && (
+                  <p className="text-gray-700 whitespace-pre-line bg-gray-50 rounded-xl p-3 mb-3">{r.comment}</p>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <LocalizedLink
+                    to={`/service/${r.serviceId}`}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm flex items-center gap-1"
+                  >
+                    <FiEye /> {t('admin.services.preview', 'Voir')}
+                  </LocalizedLink>
+                  <button onClick={() => moderateReview(r, 'rejected')}
+                    className="px-3 py-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 text-sm font-semibold flex items-center gap-1">
+                    <FiX /> {t('admin.services.reject', 'Rejeter')}
+                  </button>
+                  <button onClick={() => moderateReview(r, 'approved')}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-sm font-semibold flex items-center gap-1">
+                    <FiCheck /> {t('admin.services.approve', 'Valider')}
                   </button>
                 </div>
               </div>

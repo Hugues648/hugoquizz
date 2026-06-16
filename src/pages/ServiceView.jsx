@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  FiArrowLeft, FiMail, FiPhone, FiSend, FiTag, FiCheckCircle, FiAlertTriangle, FiEye
+  FiArrowLeft, FiMail, FiPhone, FiSend, FiTag, FiCheckCircle, FiAlertTriangle, FiEye, FiStar
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
@@ -10,7 +10,10 @@ import { useSiteConfig } from '../contexts/SiteConfigContext'
 import {
   getServiceById,
   incrementServiceViews,
-  createServiceMessage
+  createServiceMessage,
+  createServiceReview,
+  getApprovedReviewsByService,
+  getServiceReviewByFingerprint
 } from '../services/firestore'
 import { categoryLabel, typeLabel, getCategoryById } from '../config/serviceCategories'
 import LocalizedLink from '../components/LocalizedLink'
@@ -37,6 +40,34 @@ const COUNTRY_CODES = [
   { code: '+221', flag: '🇸🇳', name: 'Sénégal' },
 ]
 
+// Stable per-browser id so a visitor can only leave one review per service.
+const getBrowserUid = () => {
+  try {
+    let uid = localStorage.getItem('hugoquiz_browser_uid')
+    if (!uid) {
+      uid = 'b_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+      localStorage.setItem('hugoquiz_browser_uid', uid)
+    }
+    return uid
+  } catch {
+    return null
+  }
+}
+
+// Read-only star row.
+function Stars({ value = 0, size = 'w-4 h-4' }) {
+  return (
+    <span className="inline-flex items-center">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <FiStar
+          key={i}
+          className={`${size} ${i <= Math.round(value) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
+        />
+      ))}
+    </span>
+  )
+}
+
 export default function ServiceView() {
   const { t } = useTranslation()
   const { serviceId } = useParams()
@@ -60,6 +91,73 @@ export default function ServiceView() {
   })
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+
+  // Reviews / ratings state
+  const [reviews, setReviews] = useState([])
+  const [myReview, setMyReview] = useState(null)
+  const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '', authorName: '' })
+  const [hoverRating, setHoverRating] = useState(0)
+  const [submittingReview, setSubmittingReview] = useState(false)
+
+  // Load approved reviews + this visitor's existing review
+  useEffect(() => {
+    if (!serviceId) return
+    let mounted = true
+    ;(async () => {
+      try {
+        const [list, mine] = await Promise.all([
+          getApprovedReviewsByService(serviceId),
+          getServiceReviewByFingerprint(serviceId, getBrowserUid())
+        ])
+        if (mounted) {
+          setReviews(list)
+          setMyReview(mine)
+        }
+      } catch (e) {
+        console.error('Error loading reviews:', e)
+      }
+    })()
+    return () => { mounted = false }
+  }, [serviceId])
+
+  const handleSubmitReview = async () => {
+    if (!reviewForm.rating || reviewForm.rating < 1) {
+      toast.error(t('services.reviews.pickRating', 'Veuillez attribuer une note.'))
+      return
+    }
+    if (!reviewForm.authorName.trim()) {
+      toast.error(t('services.reviews.enterName', 'Veuillez indiquer votre nom.'))
+      return
+    }
+    setSubmittingReview(true)
+    try {
+      const hasComment = !!reviewForm.comment.trim()
+      await createServiceReview({
+        serviceId: service.id,
+        ownerId: service.userId,
+        businessName: service.businessName,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment.trim() || null,
+        authorName: reviewForm.authorName.trim(),
+        fingerprint: getBrowserUid()
+      })
+      setMyReview({ rating: reviewForm.rating, comment: reviewForm.comment.trim() || null, status: hasComment ? 'pending' : 'approved' })
+      toast.success(
+        hasComment
+          ? t('services.reviews.submittedPending', 'Merci ! Votre commentaire sera publié après validation.')
+          : t('services.reviews.submitted', 'Merci pour votre note !')
+      )
+      // Refresh approved list (rating-only reviews appear immediately)
+      const list = await getApprovedReviewsByService(service.id)
+      setReviews(list)
+    } catch (e) {
+      console.error('Error submitting review:', e)
+      toast.error(t('common.error', 'Erreur'))
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
 
   useEffect(() => {
     let mounted = true
@@ -200,6 +298,18 @@ export default function ServiceView() {
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">{service.businessName}</h1>
               {service.tagline && <p className="text-gray-600 mt-1">{service.tagline}</p>}
+              {(service.ratingCount > 0) && (
+                <button
+                  onClick={() => setActiveWindow('reviews')}
+                  className="mt-2 inline-flex items-center gap-2 text-sm hover:underline"
+                >
+                  <Stars value={service.ratingAvg || 0} />
+                  <span className="font-bold text-gray-900">{(service.ratingAvg || 0).toFixed(1)}</span>
+                  <span className="text-gray-500">
+                    ({service.ratingCount} {service.ratingCount > 1 ? t('services.reviews.ratings', 'notes') : t('services.reviews.rating', 'note')})
+                  </span>
+                </button>
+              )}
             </div>
             {service.priceLabel && (
               <div className="text-right bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100">
@@ -237,6 +347,19 @@ export default function ServiceView() {
               }`}
             >
               📩 {t('services.contact.title', 'Contact')}
+            </button>
+            <button
+              onClick={() => setActiveWindow('reviews')}
+              className={`whitespace-nowrap px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
+                activeWindow === 'reviews'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              ⭐ {t('services.reviews.title', 'Avis')}
+              {service.ratingCount > 0 && (
+                <span className="ml-1 text-xs text-gray-400">({service.ratingCount})</span>
+              )}
             </button>
           </div>
         </div>
@@ -423,6 +546,122 @@ export default function ServiceView() {
                     <FiSend /> {sending ? t('common.loading', 'Envoi...') : t('services.contact.send', 'Envoyer ma demande')}
                   </button>
                 </form>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Reviews window (Amazon-style) */}
+        {activeWindow === 'reviews' && (
+          <div className="space-y-8">
+            {/* Summary */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 bg-gradient-to-br from-amber-50 to-white border border-amber-100 rounded-2xl p-6">
+              <div className="text-center shrink-0">
+                <div className="text-5xl font-extrabold text-gray-900">{(service.ratingAvg || 0).toFixed(1)}</div>
+                <Stars value={service.ratingAvg || 0} size="w-5 h-5" />
+                <p className="text-sm text-gray-500 mt-1">
+                  {service.ratingCount || 0}{' '}
+                  {(service.ratingCount || 0) > 1
+                    ? t('services.reviews.ratings', 'notes')
+                    : t('services.reviews.rating', 'note')}
+                </p>
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">{t('services.reviews.customerReviews', 'Avis des clients')}</h2>
+                <p className="text-gray-600 text-sm">{t('services.reviews.summaryDesc', 'Partagez votre expérience avec ce prestataire pour aider les autres clients.')}</p>
+              </div>
+            </div>
+
+            {/* Submit / your review */}
+            {myReview ? (
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+                <h3 className="font-bold text-gray-900 mb-2">{t('services.reviews.yourReview', 'Votre avis')}</h3>
+                <Stars value={myReview.rating || 0} />
+                {myReview.comment && (
+                  <p className="text-gray-700 mt-2 whitespace-pre-line">{myReview.comment}</p>
+                )}
+                {myReview.status === 'pending' && (
+                  <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+                    <FiAlertTriangle /> {t('services.reviews.pendingNote', 'Votre commentaire est en attente de validation par un administrateur.')}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-2">{t('services.reviews.alreadyReviewed', 'Vous avez déjà évalué ce service.')}</p>
+              </div>
+            ) : (
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 space-y-4">
+                <h3 className="font-bold text-gray-900">{t('services.reviews.writeReview', 'Donner mon avis')}</h3>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t('services.reviews.yourRating', 'Votre note')} *</label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setReviewForm({ ...reviewForm, rating: i })}
+                        onMouseEnter={() => setHoverRating(i)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        className="p-1"
+                        aria-label={`${i} / 5`}
+                      >
+                        <FiStar
+                          className={`w-8 h-8 transition-colors ${
+                            i <= (hoverRating || reviewForm.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t('services.reviews.yourName', 'Votre nom')} *</label>
+                  <input
+                    type="text"
+                    value={reviewForm.authorName}
+                    onChange={(e) => setReviewForm({ ...reviewForm, authorName: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t('services.reviews.yourComment', 'Votre commentaire')} <span className="font-normal text-gray-400">({t('services.reviews.optional', 'facultatif')})</span></label>
+                  <textarea
+                    rows={4}
+                    value={reviewForm.comment}
+                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                    placeholder={t('services.reviews.commentPlaceholder', 'Décrivez votre expérience…')}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none resize-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{t('services.reviews.commentModerated', 'Les commentaires sont validés par un administrateur avant publication.')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl shadow hover:shadow-lg transition-all disabled:opacity-60"
+                >
+                  <FiStar /> {submittingReview ? t('common.loading', 'Envoi...') : t('services.reviews.submit', 'Publier mon avis')}
+                </button>
+              </div>
+            )}
+
+            {/* Reviews list */}
+            <div className="space-y-4">
+              {reviews.length === 0 ? (
+                <p className="text-center text-gray-400 py-8">{t('services.reviews.noReviews', 'Aucun avis pour le moment. Soyez le premier à donner votre avis !')}</p>
+              ) : (
+                reviews.map((r) => (
+                  <div key={r.id} className="border border-gray-100 rounded-2xl p-5">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold">
+                        {(r.authorName || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{r.authorName || t('services.reviews.anonymous', 'Anonyme')}</p>
+                        <Stars value={r.rating || 0} />
+                      </div>
+                    </div>
+                    {r.comment && <p className="text-gray-700 whitespace-pre-line">{r.comment}</p>}
+                  </div>
+                ))
               )}
             </div>
           </div>

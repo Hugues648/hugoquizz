@@ -1645,3 +1645,69 @@ export const deleteServiceMessage = async (messageId) => {
   await deleteDoc(doc(db, 'serviceMessages', messageId))
 }
 
+// ----- Service reviews / ratings (Amazon-style) -----
+//
+// A review always carries a 1-5 star rating (counted in the average) and an
+// optional comment. Comments must be approved by an admin before being shown:
+//  - review.status: 'approved' (no comment, shown immediately) | 'pending' (comment awaiting moderation) | 'rejected'
+// The service document aggregate (ratingAvg / ratingCount / ratingSum) is
+// recomputed by a Cloud Function over all non-rejected reviews.
+
+export const createServiceReview = async (reviewData) => {
+  const ref = collection(db, 'serviceReviews')
+  const hasComment = !!(reviewData.comment && reviewData.comment.trim())
+  const docRef = await addDoc(ref, {
+    ...reviewData,
+    comment: hasComment ? reviewData.comment.trim() : null,
+    status: hasComment ? 'pending' : 'approved',
+    createdAt: serverTimestamp()
+  })
+  return docRef.id
+}
+
+// Returns an existing review left by this browser (fingerprint) for a service, if any.
+export const getServiceReviewByFingerprint = async (serviceId, fingerprint) => {
+  if (!fingerprint) return null
+  const ref = collection(db, 'serviceReviews')
+  const q = query(ref, where('serviceId', '==', serviceId), where('fingerprint', '==', fingerprint))
+  const snapshot = await getDocs(q)
+  if (snapshot.empty) return null
+  const d = snapshot.docs[0]
+  return { id: d.id, ...d.data() }
+}
+
+// Public: approved reviews of a service (shown to everyone).
+export const getApprovedReviewsByService = async (serviceId) => {
+  const ref = collection(db, 'serviceReviews')
+  const q = query(ref, where('serviceId', '==', serviceId), where('status', '==', 'approved'))
+  const snapshot = await getDocs(q)
+  const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+  return items.sort((a, b) => {
+    const da = a.createdAt?.toDate?.() || new Date(0)
+    const dbb = b.createdAt?.toDate?.() || new Date(0)
+    return dbb - da
+  })
+}
+
+// Admin: reviews awaiting comment moderation.
+export const getPendingReviews = async () => {
+  const ref = collection(db, 'serviceReviews')
+  const q = query(ref, where('status', '==', 'pending'))
+  const snapshot = await getDocs(q)
+  const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+  return items.sort((a, b) => {
+    const da = a.createdAt?.toDate?.() || new Date(0)
+    const dbb = b.createdAt?.toDate?.() || new Date(0)
+    return da - dbb
+  })
+}
+
+// Admin: approve / reject a review comment.
+export const updateServiceReviewStatus = async (reviewId, status) => {
+  await updateDoc(doc(db, 'serviceReviews', reviewId), {
+    status,
+    moderatedAt: serverTimestamp()
+  })
+}
+
+

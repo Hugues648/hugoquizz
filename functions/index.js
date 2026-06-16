@@ -815,6 +815,16 @@ exports.checkTrialEligibility = functions.https.onCall(async (data, context) => 
     }
   }
 
+  // Not eligible if the user has ever taken any subscription (whatever the plan).
+  const sub = userData?.subscription || {}
+  const hasPaidPlan = sub.planId && sub.planId !== 'free'
+  if (userData?.hasSubscribed || hasPaidPlan || sub.stripeSubscriptionId || sub.terminatedAt) {
+    return {
+      eligible: false,
+      reason: 'already_subscribed'
+    }
+  }
+
   // Check if user has admin-granted access (current or past)
   if (userData?.subscription?.isAdminGranted || userData?.hadAdminGrantedAccess) {
     return { 
@@ -946,6 +956,11 @@ exports.createCheckoutSessionCallable = functions.https.onCall(async (data, cont
       // Verify user hasn't already used trial
       if (userData?.hasUsedTrial) {
         throw new functions.https.HttpsError('failed-precondition', 'Trial already used')
+      }
+      // Verify user hasn't already taken any subscription (whatever the plan)
+      const sub = userData?.subscription || {}
+      if (userData?.hasSubscribed || (sub.planId && sub.planId !== 'free') || sub.stripeSubscriptionId || sub.terminatedAt) {
+        throw new functions.https.HttpsError('failed-precondition', 'Not eligible for trial: already subscribed')
       }
       // Verify user hasn't had admin-granted access
       if (userData?.subscription?.isAdminGranted || userData?.hadAdminGrantedAccess) {
@@ -1615,6 +1630,7 @@ async function handleCheckoutComplete(session) {
 
   const updateData = {
     validated: true,
+    hasSubscribed: true,
     'subscription.planId': planId,
     'subscription.status': isInTrial ? 'trialing' : 'active',
     'subscription.stripeSubscriptionId': session.subscription,
@@ -4627,6 +4643,61 @@ exports.onServiceMessageCreated = functions.firestore
         </div>
         <p>Connectez-vous à votre espace pour répondre.</p>`
       await sendEmail(contact.email, `✉️ Nouvelle demande pour ${m.serviceTitle || 'votre service'}`, serviceEmailWrapper('Nouvelle demande de contact', body))
+    }
+    return null
+  })
+
+// Recompute a service's rating aggregate whenever a review is written, and
+// notify the admin / owner when a new review with a comment awaits moderation.
+exports.onServiceReviewWritten = functions.firestore
+  .document('serviceReviews/{reviewId}')
+  .onWrite(async (change, context) => {
+    const after = change.after.exists ? change.after.data() : null
+    const before = change.before.exists ? change.before.data() : null
+    const serviceId = (after && after.serviceId) || (before && before.serviceId)
+    if (!serviceId) return null
+
+    // Recompute aggregate over all non-rejected reviews (ratings always count).
+    try {
+      const snap = await db.collection('serviceReviews').where('serviceId', '==', serviceId).get()
+      let count = 0
+      let sum = 0
+      snap.forEach((d) => {
+        const r = d.data()
+        if (r.status !== 'rejected' && typeof r.rating === 'number') {
+          count += 1
+          sum += r.rating
+        }
+      })
+      const avg = count > 0 ? Math.round((sum / count) * 10) / 10 : 0
+      await db.collection('services').doc(serviceId).update({
+        ratingCount: count,
+        ratingSum: sum,
+        ratingAvg: avg,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+    } catch (err) {
+      console.error('Failed to recompute service rating aggregate:', err)
+    }
+
+    // Notify when a brand-new review with a comment needs moderation.
+    if (!before && after && after.comment && after.status === 'pending') {
+      const stars = '★'.repeat(after.rating || 0) + '☆'.repeat(Math.max(0, 5 - (after.rating || 0)))
+      const body = `
+        <p>Un nouvel avis avec commentaire attend votre validation.</p>
+        <div style="background:#f9fafb; border-radius:8px; padding:16px; margin:16px 0;">
+          <p style="margin:4px 0;"><strong>Service :</strong> ${after.businessName || after.serviceTitle || ''}</p>
+          <p style="margin:4px 0;"><strong>Auteur :</strong> ${after.authorName || 'Anonyme'}</p>
+          <p style="margin:4px 0;"><strong>Note :</strong> ${stars} (${after.rating}/5)</p>
+          <p style="margin:12px 0 4px;"><strong>Commentaire :</strong></p>
+          <p style="margin:0; white-space:pre-line;">${(after.comment || '').replace(/</g, '&lt;')}</p>
+        </div>
+        <p>Connectez-vous au panneau d'administration pour le valider ou le rejeter.</p>`
+      try {
+        await sendEmail(SERVICES_ADMIN_EMAIL, '⭐ Nouvel avis à valider', serviceEmailWrapper('Avis en attente de validation', body))
+      } catch (err) {
+        console.error('Failed to send review moderation email:', err)
+      }
     }
     return null
   })
