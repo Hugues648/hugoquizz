@@ -36,6 +36,22 @@ const RELATION_KEYS = [
 // Generate a unique browser fingerprint for visitor recognition
 // Uses a persistent random ID stored in localStorage to avoid collisions
 // between devices with identical hardware/browser (same phone model, etc.)
+const PERSISTENT_BROWSER_KEY = 'hugoquiz_browser_uid'
+
+// Returns the stable, persistent browser id (localStorage). Unlike the full
+// fingerprint hash, this value never changes across sessions (it does not depend
+// on userAgent / screen size / canvas), so it reliably identifies the same
+// visitor when they leave and come back to the link.
+const getBrowserUid = () => {
+  let persistentId = localStorage.getItem(PERSISTENT_BROWSER_KEY)
+  if (!persistentId) {
+    persistentId = crypto.randomUUID ? crypto.randomUUID() :
+      (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + '-' + Math.random().toString(36).slice(2, 10))
+    localStorage.setItem(PERSISTENT_BROWSER_KEY, persistentId)
+  }
+  return persistentId
+}
+
 const generateFingerprint = () => {
   // Check for an existing persistent unique ID in localStorage
   const PERSISTENT_KEY = 'hugoquiz_browser_uid'
@@ -445,6 +461,9 @@ export default function ViewEvent() {
   // Current visitor's browser fingerprint — used so an anonymous reserver can still
   // see their own name (only them and the organizer), while others see "anonyme".
   const myFingerprint = useMemo(() => generateFingerprint(), [])
+  // Stable persistent browser id (does not change across sessions). Primary signal
+  // to recognize one's own anonymous reservations when returning to the link.
+  const myBrowserUid = useMemo(() => getBrowserUid(), [])
 
   // Check if visitor already registered (using localStorage as primary, Firestore as fallback)
   useEffect(() => {
@@ -916,7 +935,8 @@ export default function ViewEvent() {
         message: reserveForm.message.trim() || null,
         isAnonymous: reserveForm.isAnonymous,
         quantity: gift.allowMultiple ? quantity : 1,
-        fingerprint: generateFingerprint()
+        fingerprint: generateFingerprint(),
+        browserUid: getBrowserUid()
       })
       
       setShowReserveModal(null)
@@ -1016,7 +1036,8 @@ export default function ViewEvent() {
           isAnonymous: contributeForm.isAnonymous,
           quantity: 1,
           amount,
-          fingerprint
+          fingerprint,
+          browserUid: getBrowserUid()
         })
         setSuccess(t('events.gifts.contributionSuccess'))
       }
@@ -1684,7 +1705,10 @@ export default function ViewEvent() {
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {(() => {
-                            const isMine = (sel) => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint
+                            const isMine = (sel) => sel.isAnonymous && (
+                              (sel.browserUid && sel.browserUid === myBrowserUid) ||
+                              (sel.fingerprint && sel.fingerprint === myFingerprint)
+                            )
                             const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous || isMine(sel))
                             const anonymousSelections = gift.selections.filter(sel => sel.isAnonymous && !isMine(sel))
                             const anonymousTotal = anonymousSelections.reduce((sum, sel) => sum + (sel.quantity || 1), 0)
@@ -1708,7 +1732,10 @@ export default function ViewEvent() {
                             )
                           })()}
                         </div>
-                        {gift.selections.some(sel => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint) && (
+                        {gift.selections.some(sel => sel.isAnonymous && (
+                          (sel.browserUid && sel.browserUid === myBrowserUid) ||
+                          (sel.fingerprint && sel.fingerprint === myFingerprint)
+                        )) && (
                           <p className="text-[11px] text-purple-500 mt-2 flex items-center gap-1">
                             🔒 {t('events.view.anonymousSelfNote')}
                           </p>
@@ -1725,7 +1752,10 @@ export default function ViewEvent() {
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {(() => {
-                            const isMine = (sel) => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint
+                            const isMine = (sel) => sel.isAnonymous && (
+                              (sel.browserUid && sel.browserUid === myBrowserUid) ||
+                              (sel.fingerprint && sel.fingerprint === myFingerprint)
+                            )
                             const visibleSelections = gift.selections.filter(sel => !sel.isAnonymous || isMine(sel))
                             const anonymousCount = gift.selections.filter(sel => sel.isAnonymous && !isMine(sel)).length
                             return (
@@ -1747,7 +1777,10 @@ export default function ViewEvent() {
                             )
                           })()}
                         </div>
-                        {gift.selections.some(sel => sel.isAnonymous && sel.fingerprint && sel.fingerprint === myFingerprint) && (
+                        {gift.selections.some(sel => sel.isAnonymous && (
+                          (sel.browserUid && sel.browserUid === myBrowserUid) ||
+                          (sel.fingerprint && sel.fingerprint === myFingerprint)
+                        )) && (
                           <p className="text-[11px] text-purple-500 mt-2 flex items-center gap-1">
                             🔒 {t('events.view.anonymousSelfNote')}
                           </p>
