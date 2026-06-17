@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   FiSave, FiPlus, FiTrash2, FiImage, FiType, FiX, FiChevronLeft, FiChevronRight,
-  FiShield, FiArrowRight, FiEye, FiLayers, FiTag, FiDollarSign, FiMail, FiPhone
+  FiShield, FiArrowRight, FiEye, FiLayers, FiTag, FiDollarSign, FiMail, FiPhone, FiGlobe
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
@@ -304,6 +304,10 @@ export default function CreateService() {
 
       {/* Meta card */}
       <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 space-y-5">
+        <div className="flex items-start gap-2 rounded-xl bg-violet-50 border border-violet-100 px-4 py-3 text-sm text-violet-800">
+          <FiGlobe className="mt-0.5 shrink-0 text-violet-500" />
+          <span>{t('services.autoTranslateHint', 'Vos textes seront automatiquement traduits dans les autres langues (anglais, allemand, néerlandais) lors de la publication.')}</span>
+        </div>
         <h2 className="font-bold text-gray-900 flex items-center gap-2">
           <FiTag className="text-violet-500" /> {t('services.generalInfo', 'Informations générales')}
         </h2>

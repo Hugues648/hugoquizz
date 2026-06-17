@@ -54,6 +54,38 @@ const getBrowserUid = () => {
   }
 }
 
+// Map an i18n language code to one of the supported service languages.
+const pickServiceLang = (i18nLang) => {
+  const l = (i18nLang || 'fr').slice(0, 2).toLowerCase()
+  return ['fr', 'en', 'de', 'nl'].includes(l) ? l : 'fr'
+}
+
+// Overlay auto-translated text onto a service for the visitor's language.
+// Falls back to the original text whenever a translation is missing/empty.
+const localizeService = (service, lang) => {
+  if (!service) return service
+  const tr = service.translations && service.translations[lang]
+  const srcSame = !service.sourceLang || service.sourceLang === lang
+  if (!tr || srcSame) return service
+  const twins = tr.windows || []
+  return {
+    ...service,
+    title: tr.title || service.title,
+    tagline: tr.tagline || service.tagline,
+    priceLabel: tr.priceLabel || service.priceLabel,
+    priceComment: tr.priceComment || service.priceComment,
+    windows: (service.windows || []).map((w, wi) => ({
+      ...w,
+      title: twins[wi]?.title || w.title,
+      blocks: (w.blocks || []).map((b, bi) => ({
+        ...b,
+        content: twins[wi]?.blocks?.[bi]?.content || b.content,
+        caption: twins[wi]?.blocks?.[bi]?.caption || b.caption,
+      })),
+    })),
+  }
+}
+
 // Read-only star row.
 function Stars({ value = 0, size = 'w-4 h-4' }) {
   return (
@@ -69,7 +101,7 @@ function Stars({ value = 0, size = 'w-4 h-4' }) {
 }
 
 export default function ServiceView() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { serviceId } = useParams()
   const { user, userData, isAdmin } = useAuth()
   const { getLogo, siteName } = useSiteConfig()
@@ -249,7 +281,8 @@ export default function ServiceView() {
   }
 
   const category = getCategoryById(service.category)
-  const windows = service.windows || []
+  const view = localizeService(service, pickServiceLang(i18n.language))
+  const windows = view.windows || []
   const contact = service.contact || {}
 
   return (
@@ -297,7 +330,7 @@ export default function ServiceView() {
                 </span>
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">{service.businessName}</h1>
-              {service.tagline && <p className="text-gray-600 mt-1">{service.tagline}</p>}
+              {view.tagline && <p className="text-gray-600 mt-1">{view.tagline}</p>}
               {(service.ratingCount > 0) && (
                 <button
                   onClick={() => setActiveWindow('reviews')}
@@ -311,10 +344,10 @@ export default function ServiceView() {
                 </button>
               )}
             </div>
-            {service.priceLabel && (
+            {view.priceLabel && (
               <div className="text-right bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100">
-                <p className="text-xl font-bold text-violet-600">{service.priceLabel}</p>
-                {service.priceComment && <p className="text-xs text-gray-500 max-w-[180px]">{service.priceComment}</p>}
+                <p className="text-xl font-bold text-violet-600">{view.priceLabel}</p>
+                {view.priceComment && <p className="text-xs text-gray-500 max-w-[180px]">{view.priceComment}</p>}
               </div>
             )}
           </div>

@@ -3122,6 +3122,7 @@ export default {
     createService: 'Créer un service',
     editTitle: 'Modifier le service',
     createSubtitle: 'Présentez votre activité de façon claire et attrayante.',
+    autoTranslateHint: 'Vos textes seront automatiquement traduits dans les autres langues (anglais, allemand, néerlandais) lors de la publication.',
     generalInfo: 'Informations générales',
     businessName: 'Nom de l\'entreprise',
     serviceTitle: 'Titre du service',

@@ -4705,6 +4705,150 @@ exports.onServiceReviewWritten = functions.firestore
     return null
   })
 
+// ==================== SERVICE AUTO-TRANSLATION ====================
+//
+// When a service is published (isPublic === true), its provider-authored text is
+// automatically translated into the other supported languages and stored on the
+// document under `translations`. The visitor-facing page then shows the content in
+// their own language (with a fallback to the original). Translation uses Google
+// Cloud Translation, authenticated via the function's service account (no API key
+// in code) — the Cloud Translation API must be enabled on the Google Cloud project.
+
+const TRANSLATION_LANGS = ['fr', 'en', 'de', 'nl']
+let _translateClient = null
+function getTranslateClient() {
+  if (!_translateClient) {
+    const { Translate } = require('@google-cloud/translate').v2
+    _translateClient = new Translate()
+  }
+  return _translateClient
+}
+
+// Build the ordered list of translatable strings + a map to rebuild the structure.
+function buildServiceTranslatable(s) {
+  const strings = []
+  const add = (val) => {
+    const i = strings.length
+    strings.push(typeof val === 'string' ? val : '')
+    return i
+  }
+  const map = {
+    title: add(s.title),
+    tagline: add(s.tagline),
+    priceLabel: add(s.priceLabel),
+    priceComment: add(s.priceComment),
+    windows: (s.windows || []).map((w) => ({
+      title: add(w.title),
+      blocks: (w.blocks || []).map((b) => ({
+        content: b && b.type === 'text' ? add(b.content) : -1,
+        caption: add(b && b.caption),
+      })),
+    })),
+  }
+  return { strings, map }
+}
+
+// Rebuild a translated service object from the flat translated array.
+function rebuildServiceTranslation(map, translated) {
+  const g = (i) => (i >= 0 ? (translated[i] || '') : '')
+  return {
+    title: g(map.title),
+    tagline: g(map.tagline),
+    priceLabel: g(map.priceLabel),
+    priceComment: g(map.priceComment),
+    windows: map.windows.map((w) => ({
+      title: g(w.title),
+      blocks: w.blocks.map((b) => ({
+        content: b.content >= 0 ? g(b.content) : '',
+        caption: g(b.caption),
+      })),
+    })),
+  }
+}
+
+// Deterministic hash of the translatable content (used to skip work + avoid loops).
+function serviceContentHash(s) {
+  const { strings } = buildServiceTranslatable(s)
+  const joined = strings.join('\u0001')
+  let hash = 0
+  for (let i = 0; i < joined.length; i++) {
+    hash = ((hash << 5) - hash) + joined.charCodeAt(i)
+    hash |= 0
+  }
+  return String(hash)
+}
+
+exports.onServiceTranslate = functions.firestore
+  .document('services/{serviceId}')
+  .onWrite(async (change, context) => {
+    const after = change.after.exists ? change.after.data() : null
+    if (!after) return null
+    // Only translate published / approved services.
+    if (after.isPublic !== true) return null
+
+    const hash = serviceContentHash(after)
+    // Already up to date — also prevents an infinite loop from our own write below.
+    if (after.translationHash === hash) return null
+
+    try {
+      const translate = getTranslateClient()
+      const { strings, map } = buildServiceTranslatable(after)
+
+      // Only send non-empty strings to the API (saves quota), keep index mapping.
+      const nonEmptyIdx = []
+      const toTranslate = []
+      strings.forEach((str, i) => {
+        if (str && str.trim()) {
+          nonEmptyIdx.push(i)
+          toTranslate.push(str)
+        }
+      })
+
+      // Detect the source language from a representative sample.
+      const sample = toTranslate.join('\n').slice(0, 1500) || (after.businessName || '')
+      let fromCode = null
+      if (sample) {
+        try {
+          const [det] = await translate.detect(sample)
+          fromCode = Array.isArray(det) ? det[0]?.language : det?.language
+        } catch (e) {
+          console.warn('Language detection failed:', e.message)
+        }
+      }
+      const sourceLang = (fromCode || 'fr').slice(0, 2)
+      const targets = TRANSLATION_LANGS.includes(sourceLang)
+        ? TRANSLATION_LANGS.filter((l) => l !== sourceLang)
+        : TRANSLATION_LANGS.slice()
+
+      const translations = {}
+      if (toTranslate.length > 0) {
+        for (const to of targets) {
+          const opts = { to, format: 'text' }
+          if (fromCode) opts.from = fromCode
+          let [res] = await translate.translate(toTranslate, opts)
+          if (!Array.isArray(res)) res = [res]
+          // Re-expand to the full string list (empty where original was empty).
+          const full = strings.map(() => '')
+          nonEmptyIdx.forEach((origIdx, k) => {
+            full[origIdx] = res[k] || ''
+          })
+          translations[to] = rebuildServiceTranslation(map, full)
+        }
+      }
+
+      await change.after.ref.update({
+        translations,
+        sourceLang,
+        translationHash: hash,
+        translationsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      })
+      console.log(`Service ${context.params.serviceId} translated (source ${sourceLang}) → ${targets.join(', ') || 'none'}`)
+    } catch (err) {
+      console.error('Service translation failed:', err)
+    }
+    return null
+  })
+
 // ==================== ADMIN MESSAGING ====================
 
 // Professional email template with a CTA button linking to hugoquiz.com.

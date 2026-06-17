@@ -2870,6 +2870,7 @@ export default {
     createService: 'Service erstellen',
     editTitle: 'Service bearbeiten',
     createSubtitle: 'Präsentieren Sie Ihr Angebot klar und ansprechend.',
+    autoTranslateHint: 'Ihre Texte werden bei der Veröffentlichung automatisch in die anderen Sprachen (Französisch, Englisch, Niederländisch) übersetzt.',
     generalInfo: 'Allgemeine Informationen',
     businessName: 'Firmenname',
     serviceTitle: 'Service-Titel',

@@ -3082,6 +3082,7 @@ export default {
     createService: 'Create a service',
     editTitle: 'Edit service',
     createSubtitle: 'Present your business clearly and attractively.',
+    autoTranslateHint: 'Your texts will be automatically translated into the other languages (French, German, Dutch) when published.',
     generalInfo: 'General information',
     businessName: 'Business name',
     serviceTitle: 'Service title',
