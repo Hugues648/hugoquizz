@@ -10,6 +10,7 @@ import {
   deleteEventProgram,
   deleteEventMenu,
   createPlanningShareLink,
+  updatePlanningShareLink,
   deletePlanningShareLink
 } from '../services/firestore'
 import { 
@@ -37,6 +38,7 @@ export default function EventPlanning() {
   const [error, setError] = useState('')
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareSelection, setShareSelection] = useState({ programs: [], menus: [], guestbook: false })
+  const [editingLinkId, setEditingLinkId] = useState(null)
   const [copiedLink, setCopiedLink] = useState(false)
   const [generatingLink, setGeneratingLink] = useState(false)
   const [activeTab, setActiveTab] = useState('programs')
@@ -102,29 +104,76 @@ export default function EventPlanning() {
 
     setGeneratingLink(true)
     try {
-      const result = await createPlanningShareLink({
-        eventId,
-        eventName: event?.name,
-        selectedPrograms: shareSelection.programs,
-        selectedMenus: shareSelection.menus,
-        includeGuestbook: shareSelection.guestbook
-      })
-      
-      setShareLinks(prev => [{ 
-        id: result.id, 
-        shareCode: result.shareCode,
-        selectedPrograms: shareSelection.programs,
-        selectedMenus: shareSelection.menus,
-        includeGuestbook: shareSelection.guestbook,
-        createdAt: new Date()
-      }, ...prev])
-      
+      if (editingLinkId) {
+        // Update the existing link: the shareCode / QR / URL stay identical.
+        await updatePlanningShareLink(editingLinkId, {
+          selectedPrograms: shareSelection.programs,
+          selectedMenus: shareSelection.menus,
+          includeGuestbook: shareSelection.guestbook
+        })
+
+        setShareLinks(prev => prev.map(l =>
+          l.id === editingLinkId
+            ? {
+                ...l,
+                selectedPrograms: shareSelection.programs,
+                selectedMenus: shareSelection.menus,
+                includeGuestbook: shareSelection.guestbook
+              }
+            : l
+        ))
+
+        toast.success(t('planning.linkUpdated', 'QR code mis à jour !'))
+      } else {
+        const result = await createPlanningShareLink({
+          eventId,
+          eventName: event?.name,
+          selectedPrograms: shareSelection.programs,
+          selectedMenus: shareSelection.menus,
+          includeGuestbook: shareSelection.guestbook
+        })
+
+        setShareLinks(prev => [{
+          id: result.id,
+          shareCode: result.shareCode,
+          selectedPrograms: shareSelection.programs,
+          selectedMenus: shareSelection.menus,
+          includeGuestbook: shareSelection.guestbook,
+          createdAt: new Date()
+        }, ...prev])
+      }
+
       setShareSelection({ programs: [], menus: [], guestbook: false })
+      setEditingLinkId(null)
+      setShowShareModal(false)
     } catch (err) {
-      console.error('Error generating share link:', err)
+      console.error('Error saving share link:', err)
+      toast.error(t('common.error'))
     } finally {
       setGeneratingLink(false)
     }
+  }
+
+  const openCreateShareModal = () => {
+    setEditingLinkId(null)
+    setShareSelection({ programs: [], menus: [], guestbook: false })
+    setShowShareModal(true)
+  }
+
+  const openEditShareModal = (link) => {
+    setEditingLinkId(link.id)
+    setShareSelection({
+      programs: link.selectedPrograms || [],
+      menus: link.selectedMenus || [],
+      guestbook: link.includeGuestbook || false
+    })
+    setShowShareModal(true)
+  }
+
+  const closeShareModal = () => {
+    setShowShareModal(false)
+    setEditingLinkId(null)
+    setShareSelection({ programs: [], menus: [], guestbook: false })
   }
 
   const getShareUrl = (shareCode) => {
@@ -408,7 +457,7 @@ export default function EventPlanning() {
           </div>
 
           <button
-            onClick={() => setShowShareModal(true)}
+            onClick={openCreateShareModal}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             <FiShare2 className="w-4 h-4" />
@@ -610,7 +659,7 @@ export default function EventPlanning() {
                 <FiLink className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>{t('planning.noLinksYet')}</p>
                 <button
-                  onClick={() => setShowShareModal(true)}
+                  onClick={openCreateShareModal}
                   className="mt-4 text-primary-500 hover:underline"
                 >
                   {t('planning.generateQR')}
@@ -665,9 +714,21 @@ export default function EventPlanning() {
                             </span>
                           ) : null
                         })}
+                        {link.includeGuestbook && (
+                          <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
+                            ✍️ {t('guestbook.title', "Livre d'Or")}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditShareModal(link)}
+                          className="text-xs flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
+                          <FiEdit2 className="w-3 h-3" />
+                          {t('common.edit', 'Modifier')}
+                        </button>
                         <button
                           onClick={() => downloadQRCode(link.shareCode)}
                           className="text-xs flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -705,8 +766,16 @@ export default function EventPlanning() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold">{t('planning.generateQRTitle')}</h2>
-                <p className="text-sm text-gray-500 mt-1">{t('planning.generateQRDescription')}</p>
+                <h2 className="text-xl font-bold">
+                  {editingLinkId
+                    ? t('planning.editQRTitle', 'Modifier le QR code')
+                    : t('planning.generateQRTitle')}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editingLinkId
+                    ? t('planning.editQRDescription', 'Ajoutez ou retirez des éléments. Le QR code et le lien restent identiques.')
+                    : t('planning.generateQRDescription')}
+                </p>
               </div>
 
               <div className="p-6 space-y-6">
@@ -802,10 +871,7 @@ export default function EventPlanning() {
 
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                 <button
-                  onClick={() => {
-                    setShowShareModal(false)
-                    setShareSelection({ programs: [], menus: [], guestbook: false })
-                  }}
+                  onClick={closeShareModal}
                   className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   {t('common.cancel')}
@@ -819,8 +885,10 @@ export default function EventPlanning() {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <FiLink className="w-4 h-4" />
-                      {t('planning.generate')}
+                      {editingLinkId ? <FiCheck className="w-4 h-4" /> : <FiLink className="w-4 h-4" />}
+                      {editingLinkId
+                        ? t('planning.saveChanges', 'Enregistrer')
+                        : t('planning.generate')}
                     </>
                   )}
                 </button>
