@@ -16,6 +16,7 @@ import {
   getServiceReviewByFingerprint
 } from '../services/firestore'
 import { categoryLabel, typeLabel, getCategoryById } from '../config/serviceCategories'
+import { getCountryName } from '../config/countriesCities'
 import LocalizedLink from '../components/LocalizedLink'
 import LanguageSelector from '../components/LanguageSelector'
 import ServiceAvatar from '../components/services/ServiceAvatar'
@@ -340,8 +341,8 @@ export default function ServiceView() {
                 <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
                   <span className="text-base leading-none">{service.location.flag}</span>
                   <span className="font-medium">{service.location.city}</span>
-                  {service.location.country && (
-                    <span className="text-gray-400">· {service.location.country}</span>
+                  {(service.location.countryCode || service.location.country) && (
+                    <span className="text-gray-400">· {getCountryName(service.location.countryCode, i18n.language) || service.location.country}</span>
                   )}
                 </p>
               )}

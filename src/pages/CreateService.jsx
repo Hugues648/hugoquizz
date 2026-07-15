@@ -11,7 +11,7 @@ import {
   createService, updateService, getServiceById, getLatestVerificationByUser
 } from '../services/firestore'
 import { SERVICE_CATEGORIES, getCategoryById, categoryLabel, typeLabel } from '../config/serviceCategories'
-import { COUNTRIES, getCountryByCode, getCitiesForCountry } from '../config/countriesCities'
+import { COUNTRIES, getCountryByCode, getCitiesForCountry, getCountryName } from '../config/countriesCities'
 import { useLocalizedPath } from '../components/LocalizedLink'
 import ImageUpload from '../components/ImageUpload'
 import ServiceAvatar from '../components/services/ServiceAvatar'
@@ -20,7 +20,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 const emptyWindow = (title = '') => ({ title, blocks: [] })
 
 export default function CreateService() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { serviceId } = useParams()
   const navigate = useNavigate()
   const getLocalizedPath = useLocalizedPath()
@@ -437,11 +437,14 @@ export default function CreateService() {
               onChange={(e) => setMeta({ ...meta, countryCode: e.target.value, city: '' })}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none bg-white"
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.flag} {c.name}
-                </option>
-              ))}
+              {COUNTRIES
+                .map((c) => ({ ...c, label: getCountryName(c.code, i18n.language) }))
+                .sort((a, b) => a.label.localeCompare(b.label, i18n.language))
+                .map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.label}
+                  </option>
+                ))}
             </select>
           </div>
           <div>

@@ -108,7 +108,7 @@ export const COUNTRIES = [
   { code: 'MU', name: 'Maurice', flag: '🇲🇺', dial: '+230' },
   { code: 'SC', name: 'Seychelles', flag: '🇸🇨', dial: '+248' },
   { code: 'KM', name: 'Comores', flag: '🇰🇲', dial: '+269' },
-  { code: 'TG2', name: 'Sao Tomé-et-Principe', flag: '🇸🇹', dial: '+239' },
+  { code: 'ST', name: 'Sao Tomé-et-Principe', flag: '🇸🇹', dial: '+239' },
   { code: 'CV', name: 'Cap-Vert', flag: '🇨🇻', dial: '+238' },
   { code: 'NG', name: 'Nigéria', flag: '🇳🇬', dial: '+234' },
   { code: 'GH', name: 'Ghana', flag: '🇬🇭', dial: '+233' },
@@ -123,7 +123,7 @@ export const COUNTRIES = [
   { code: 'ZW', name: 'Zimbabwe', flag: '🇿🇼', dial: '+263' },
   { code: 'BW', name: 'Botswana', flag: '🇧🇼', dial: '+267' },
   { code: 'NA', name: 'Namibie', flag: '🇳🇦', dial: '+264' },
-  { code: 'SN2', name: 'Soudan', flag: '🇸🇩', dial: '+249' },
+  { code: 'SD', name: 'Soudan', flag: '🇸🇩', dial: '+249' },
   { code: 'GM', name: 'Gambie', flag: '🇬🇲', dial: '+220' },
   { code: 'SL', name: 'Sierra Leone', flag: '🇸🇱', dial: '+232' },
   { code: 'LR', name: 'Liberia', flag: '🇱🇷', dial: '+231' },
@@ -276,7 +276,7 @@ export const CITIES_BY_COUNTRY = {
   MU: ['Port-Louis', 'Beau-Bassin Rose-Hill', 'Vacoas-Phoenix', 'Curepipe', 'Quatre Bornes', 'Grand Baie'],
   SC: ['Victoria', 'Anse Boileau', 'Beau Vallon', 'Takamaka'],
   KM: ['Moroni', 'Mutsamudu', 'Fomboni', 'Domoni'],
-  TG2: ['São Tomé', 'Santo António', 'Neves', 'Trindade'],
+  ST: ['São Tomé', 'Santo António', 'Neves', 'Trindade'],
   CV: ['Praia', 'Mindelo', 'Santa Maria', 'Assomada', 'Espargos'],
   NG: ['Lagos', 'Kano', 'Ibadan', 'Abuja', 'Port Harcourt', 'Benin City', 'Kaduna', 'Enugu', 'Aba', 'Onitsha'],
   GH: ['Accra', 'Kumasi', 'Tamale', 'Takoradi', 'Cape Coast', 'Tema', 'Koforidua'],
@@ -291,7 +291,7 @@ export const CITIES_BY_COUNTRY = {
   ZW: ['Harare', 'Bulawayo', 'Chitungwiza', 'Mutare', 'Gweru', 'Victoria Falls'],
   BW: ['Gaborone', 'Francistown', 'Molepolole', 'Maun', 'Serowe'],
   NA: ['Windhoek', 'Walvis Bay', 'Swakopmund', 'Rundu', 'Oshakati'],
-  SN2: ['Khartoum', 'Omdurman', 'Port-Soudan', 'Kassala', 'Nyala', 'El Obeid'],
+  SD: ['Khartoum', 'Omdurman', 'Port-Soudan', 'Kassala', 'Nyala', 'El Obeid'],
   GM: ['Banjul', 'Serekunda', 'Brikama', 'Bakau', 'Farafenni'],
   SL: ['Freetown', 'Bo', 'Kenema', 'Makeni', 'Koidu'],
   LR: ['Monrovia', 'Gbarnga', 'Buchanan', 'Kakata', 'Voinjama'],
@@ -351,3 +351,36 @@ export const getCountryByCode = (code) =>
 
 // Returns the list of known cities for a country code (may be empty).
 export const getCitiesForCountry = (code) => CITIES_BY_COUNTRY[code] || []
+
+// Localised country-name resolution using the built-in Intl.DisplayNames API.
+// Falls back to the stored French name when the locale/code is unsupported.
+const _displayNamesCache = {}
+const _getDisplayNames = (lang) => {
+  const key = lang || 'fr'
+  if (!(key in _displayNamesCache)) {
+    try {
+      _displayNamesCache[key] = new Intl.DisplayNames([key], { type: 'region' })
+    } catch {
+      _displayNamesCache[key] = null
+    }
+  }
+  return _displayNamesCache[key]
+}
+
+// Returns the country name translated into the given language (e.g. 'fr', 'en',
+// 'de', 'nl'). Uses the ISO code; falls back to the stored French name.
+export const getCountryName = (code, lang = 'fr') => {
+  const entry = getCountryByCode(code)
+  const fallback = entry ? entry.name : (code || '')
+  if (!code) return fallback
+  const dn = _getDisplayNames((lang || 'fr').slice(0, 2))
+  if (dn) {
+    try {
+      const localized = dn.of(code)
+      if (localized && localized !== code) return localized
+    } catch {
+      // invalid region code — use fallback
+    }
+  }
+  return fallback
+}
