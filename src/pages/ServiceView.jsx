@@ -116,6 +116,7 @@ export default function ServiceView() {
     fullName: '',
     dialCode: '+33',
     phone: '',
+    email: '',
     clientType: 'particulier',
     subject: '',
     message: '',
@@ -220,8 +221,12 @@ export default function ServiceView() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.fullName.trim() || !form.phone.trim() || !form.message.trim()) {
+    if (!form.fullName.trim() || !form.phone.trim() || !form.email.trim() || !form.message.trim()) {
       toast.error(t('services.contact.fillRequired', 'Veuillez remplir les champs obligatoires.'))
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      toast.error(t('services.contact.invalidEmail', 'Veuillez saisir un e-mail valide.'))
       return
     }
     if (!form.consent) {
@@ -236,6 +241,7 @@ export default function ServiceView() {
         ownerId: service.userId,
         fullName: form.fullName.trim(),
         phone: `${form.dialCode} ${form.phone.trim()}`,
+        email: form.email.trim(),
         clientType: form.clientType,
         subject: form.subject.trim(),
         message: form.message.trim(),
@@ -330,6 +336,15 @@ export default function ServiceView() {
                 </span>
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">{service.businessName}</h1>
+              {service.location?.city && (
+                <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+                  <span className="text-base leading-none">{service.location.flag}</span>
+                  <span className="font-medium">{service.location.city}</span>
+                  {service.location.country && (
+                    <span className="text-gray-400">· {service.location.country}</span>
+                  )}
+                </p>
+              )}
               {view.tagline && <p className="text-gray-600 mt-1">{view.tagline}</p>}
               {(service.ratingCount > 0) && (
                 <button
@@ -498,6 +513,20 @@ export default function ServiceView() {
                         required
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      {t('services.contact.email', 'Adresse e-mail')} *
+                    </label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder={t('services.contact.emailPlaceholder', 'vous@exemple.com')}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none"
+                      required
+                    />
                   </div>
 
                   <div>

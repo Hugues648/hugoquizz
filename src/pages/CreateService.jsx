@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   FiSave, FiPlus, FiTrash2, FiImage, FiType, FiX, FiChevronLeft, FiChevronRight,
-  FiShield, FiArrowRight, FiEye, FiLayers, FiTag, FiDollarSign, FiMail, FiPhone, FiGlobe
+  FiShield, FiArrowRight, FiEye, FiLayers, FiTag, FiDollarSign, FiMail, FiPhone, FiGlobe, FiMapPin
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
@@ -11,6 +11,7 @@ import {
   createService, updateService, getServiceById, getLatestVerificationByUser
 } from '../services/firestore'
 import { SERVICE_CATEGORIES, getCategoryById, categoryLabel, typeLabel } from '../config/serviceCategories'
+import { COUNTRIES, getCountryByCode, getCitiesForCountry } from '../config/countriesCities'
 import { useLocalizedPath } from '../components/LocalizedLink'
 import ImageUpload from '../components/ImageUpload'
 import ServiceAvatar from '../components/services/ServiceAvatar'
@@ -39,6 +40,8 @@ export default function CreateService() {
     ownerPhotoURL: userData?.photoURL || '',
     priceLabel: '',
     priceComment: '',
+    countryCode: 'FR',
+    city: '',
   })
   const [contact, setContact] = useState({
     email: userData?.email || '',
@@ -98,6 +101,8 @@ export default function CreateService() {
           ownerPhotoURL: svc.ownerPhotoURL || '',
           priceLabel: svc.priceLabel || '',
           priceComment: svc.priceComment || '',
+          countryCode: svc.location?.countryCode || 'FR',
+          city: svc.location?.city || '',
         })
         setContact({
           email: svc.contact?.email || '',
@@ -185,6 +190,8 @@ export default function CreateService() {
     if (!meta.businessName.trim()) return t('services.errors.businessName', "Indiquez le nom de l'entreprise.")
     if (!meta.title.trim()) return t('services.errors.title', 'Indiquez un titre pour votre service.')
     if (!meta.serviceType) return t('services.errors.type', 'Choisissez un type de service.')
+    if (!meta.countryCode) return t('services.errors.country', 'Choisissez votre pays.')
+    if (!meta.city.trim()) return t('services.errors.city', 'Indiquez votre ville.')
     if (contact.showEmail && !contact.email.trim()) return t('services.errors.email', 'Renseignez un e-mail de contact.')
     return null
   }
@@ -199,6 +206,7 @@ export default function CreateService() {
     try {
       // Auto-fill cover from first image block if not set
       const firstImage = windows.flatMap((w) => w.blocks).find((b) => b.type === 'image' && b.url)?.url
+      const selectedCountry = getCountryByCode(meta.countryCode)
       const payload = {
         userId: user.uid,
         businessName: meta.businessName.trim(),
@@ -210,6 +218,12 @@ export default function CreateService() {
         coverImage: meta.coverImage || firstImage || '',
         priceLabel: meta.priceLabel.trim(),
         priceComment: meta.priceComment.trim(),
+        location: {
+          countryCode: meta.countryCode,
+          country: selectedCountry?.name || '',
+          flag: selectedCountry?.flag || '',
+          city: meta.city.trim(),
+        },
         contact: {
           email: contact.email.trim(),
           showEmail: contact.showEmail,
@@ -409,6 +423,44 @@ export default function CreateService() {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Location: country + city */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+              <FiMapPin className="text-violet-500" /> {t('services.country', 'Pays')} *
+            </label>
+            <select
+              value={meta.countryCode}
+              onChange={(e) => setMeta({ ...meta, countryCode: e.target.value, city: '' })}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none bg-white"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('services.city', 'Ville')} *
+            </label>
+            <input
+              type="text"
+              list="service-city-list"
+              value={meta.city}
+              onChange={(e) => setMeta({ ...meta, city: e.target.value })}
+              placeholder={t('services.cityPlaceholder', 'Choisissez ou saisissez votre ville')}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-violet-400 outline-none"
+            />
+            <datalist id="service-city-list">
+              {getCitiesForCountry(meta.countryCode).map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
           </div>
         </div>
 

@@ -4631,21 +4631,40 @@ exports.onServiceMessageCreated = functions.firestore
     await createUserNotification(m.ownerId, 'service_message', `✉️ Nouvelle demande de contact pour "${m.serviceTitle || 'votre service'}" de ${m.fullName || ''}.`)
 
     const contact = await getUserContact(m.ownerId)
-    if (contact?.email) {
-      const clientType = m.clientType === 'entreprise' ? 'Entreprise' : 'Particulier'
-      const body = `
-        <p>Bonjour <strong>${contact.name}</strong>,</p>
-        <p>Vous avez reçu une nouvelle demande concernant votre service <strong>${m.serviceTitle || ''}</strong>.</p>
+    const clientType = m.clientType === 'entreprise' ? 'Entreprise' : 'Particulier'
+    const detailsBlock = `
         <div style="background:#f9fafb; border-radius:8px; padding:16px; margin:16px 0;">
           <p style="margin:4px 0;"><strong>Nom :</strong> ${m.fullName || ''}</p>
           <p style="margin:4px 0;"><strong>Téléphone :</strong> ${m.phone || ''}</p>
+          <p style="margin:4px 0;"><strong>E-mail :</strong> ${m.email || ''}</p>
           <p style="margin:4px 0;"><strong>Type de client :</strong> ${clientType}</p>
           <p style="margin:4px 0;"><strong>Objet :</strong> ${m.subject || ''}</p>
           <p style="margin:12px 0 4px;"><strong>Message :</strong></p>
           <p style="margin:0; white-space:pre-line;">${(m.message || '').replace(/</g, '&lt;')}</p>
-        </div>
+        </div>`
+
+    // Notify the service owner.
+    if (contact?.email) {
+      const body = `
+        <p>Bonjour <strong>${contact.name}</strong>,</p>
+        <p>Vous avez reçu une nouvelle demande concernant votre service <strong>${m.serviceTitle || ''}</strong>.</p>
+        ${detailsBlock}
         <p>Connectez-vous à votre espace pour répondre.</p>`
       await sendEmail(contact.email, `✉️ Nouvelle demande pour ${m.serviceTitle || 'votre service'}`, serviceEmailWrapper('Nouvelle demande de contact', body))
+    }
+
+    // Send a copy to the admin for every contact message.
+    try {
+      const adminBody = `
+        <p>Une nouvelle demande de contact a été envoyée à un prestataire.</p>
+        <div style="background:#f3f4f6; border-radius:8px; padding:12px; margin:12px 0;">
+          <p style="margin:4px 0;"><strong>Service :</strong> ${m.serviceTitle || ''}</p>
+          <p style="margin:4px 0;"><strong>Prestataire :</strong> ${contact?.name || m.ownerId}</p>
+        </div>
+        ${detailsBlock}`
+      await sendEmail(SERVICES_ADMIN_EMAIL, `📩 Copie — nouvelle demande pour ${m.serviceTitle || 'un service'}`, serviceEmailWrapper('Copie demande de contact', adminBody))
+    } catch (err) {
+      console.error('Failed to send admin copy of contact message:', err)
     }
     return null
   })

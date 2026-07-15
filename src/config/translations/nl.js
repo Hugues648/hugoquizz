@@ -2760,6 +2760,9 @@ export default {
     taglinePlaceholder: 'Een korte zin die uw aanbod samenvat',
     category: 'Categorie',
     serviceType: 'Servicetype',
+    country: 'Land',
+    city: 'Stad',
+    cityPlaceholder: 'Kies of typ uw stad',
     coverImage: 'Omslagafbeelding',
     profilePhoto: 'Profielfoto',
     profilePhotoHint: 'Als u geen foto toevoegt, worden de initialen van uw naam weergegeven.',
@@ -2797,6 +2800,8 @@ export default {
       businessName: 'Voer de bedrijfsnaam in.',
       title: 'Voer een titel in voor uw service.',
       type: 'Kies een servicetype.',
+      country: 'Kies uw land.',
+      city: 'Voer uw stad in.',
       email: 'Voer een contact-e-mail in.'
     },
     status: {
@@ -2857,6 +2862,9 @@ export default {
       intro: 'Beschrijf uw behoefte of project nauwkeurig en wij reageren zo snel mogelijk.',
       fullName: 'Volledige naam',
       phone: 'Telefoonnummer',
+      email: 'E-mailadres',
+      emailPlaceholder: 'jij@voorbeeld.com',
+      invalidEmail: 'Voer een geldig e-mailadres in.',
       clientType: 'Type klant',
       individual: 'Particulier',
       company: 'Bedrijf',

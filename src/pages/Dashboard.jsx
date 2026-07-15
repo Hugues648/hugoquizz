@@ -930,6 +930,12 @@ const Dashboard = () => {
                             <p className="text-gray-500 text-sm truncate">
                               {categoryLabel(t, service.category)} · {typeLabel(t, service.serviceType)}
                             </p>
+                            {service.location?.city && (
+                              <p className="text-gray-400 text-xs truncate flex items-center gap-1 mt-0.5">
+                                <span className="text-sm leading-none">{service.location.flag}</span>
+                                {service.location.city}
+                              </p>
+                            )}
                             <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-400">
                               <span className="flex items-center gap-1"><FiEye /> {service.views || 0} {t('services.views', 'vues')}</span>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[service.status] || 'bg-gray-100 text-gray-600'}`}>

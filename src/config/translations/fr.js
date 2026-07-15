@@ -3135,6 +3135,9 @@ export default {
     taglinePlaceholder: 'Une courte phrase qui résume votre offre',
     category: 'Catégorie',
     serviceType: 'Type de service',
+    country: 'Pays',
+    city: 'Ville',
+    cityPlaceholder: 'Choisissez ou saisissez votre ville',
     coverImage: 'Image de couverture',
     profilePhoto: 'Photo de profil',
     profilePhotoHint: "Si vous n'ajoutez pas de photo, les initiales de votre nom seront affichées.",
@@ -3172,6 +3175,8 @@ export default {
       businessName: 'Indiquez le nom de l\'entreprise.',
       title: 'Indiquez un titre pour votre service.',
       type: 'Choisissez un type de service.',
+      country: 'Choisissez votre pays.',
+      city: 'Indiquez votre ville.',
       email: 'Renseignez un e-mail de contact.'
     },
     status: {
@@ -3232,6 +3237,9 @@ export default {
       intro: 'Décrivez avec précision votre besoin ou projet et nous vous répondrons dans les plus brefs délais.',
       fullName: 'Nom complet',
       phone: 'Numéro de téléphone',
+      email: 'Adresse e-mail',
+      emailPlaceholder: 'vous@exemple.com',
+      invalidEmail: 'Veuillez saisir un e-mail valide.',
       clientType: 'Type de client',
       individual: 'Particulier',
       company: 'Entreprise',

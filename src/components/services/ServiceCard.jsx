@@ -1,16 +1,20 @@
 import { useTranslation } from 'react-i18next'
-import { FiEye, FiTag } from 'react-icons/fi'
+import { FiEye, FiTag, FiMapPin } from 'react-icons/fi'
 import LocalizedLink from '../LocalizedLink'
 import ServiceAvatar from './ServiceAvatar'
 import { categoryLabel, typeLabel, getCategoryById } from '../../config/serviceCategories'
+import { useAuth } from '../../contexts/AuthContext'
 
 /**
  * ServiceCard - card used in the public marketplace and category listings.
  */
 export default function ServiceCard({ service }) {
   const { t } = useTranslation()
+  const { user, isAdmin } = useAuth()
   const category = getCategoryById(service.category)
   const cover = service.coverImage || service.windows?.[0]?.blocks?.find((b) => b.type === 'image')?.url
+  const canSeeViews = (user && user.uid === service.userId) || (isAdmin && isAdmin())
+  const loc = service.location
 
   return (
     <LocalizedLink
@@ -45,6 +49,12 @@ export default function ServiceCard({ service }) {
             <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
               <FiTag className="w-3 h-3" /> {typeLabel(t, service.serviceType)}
             </p>
+            {loc?.city && (
+              <p className="text-xs text-gray-400 flex items-center gap-1 truncate mt-0.5">
+                <span className="text-sm leading-none">{loc.flag}</span>
+                <span className="truncate">{loc.city}</span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -59,9 +69,11 @@ export default function ServiceCard({ service }) {
           ) : (
             <span className="text-sm text-gray-400">{t('services.onQuote', 'Sur devis')}</span>
           )}
-          <span className="text-xs text-gray-400 flex items-center gap-1">
-            <FiEye className="w-3.5 h-3.5" /> {service.views || 0}
-          </span>
+          {canSeeViews && (
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              <FiEye className="w-3.5 h-3.5" /> {service.views || 0}
+            </span>
+          )}
         </div>
       </div>
     </LocalizedLink>

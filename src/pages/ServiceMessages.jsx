@@ -117,6 +117,11 @@ export default function ServiceMessages() {
                     <a href={`tel:${msg.phone}`} className="flex items-center gap-2 text-gray-600 hover:text-violet-600">
                       <FiPhone className="text-gray-400" /> {msg.phone}
                     </a>
+                    {msg.email && (
+                      <a href={`mailto:${msg.email}`} className="flex items-center gap-2 text-gray-600 hover:text-violet-600 break-all">
+                        <FiMail className="text-gray-400" /> {msg.email}
+                      </a>
+                    )}
                     {msg.serviceTitle && (
                       <span className="flex items-center gap-2 text-gray-600 sm:col-span-2">
                         🛎️ {msg.serviceTitle}
