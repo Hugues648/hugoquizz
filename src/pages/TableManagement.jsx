@@ -13,7 +13,8 @@ import {
 } from '../services/firestore'
 import { 
   FiArrowLeft, FiUsers, FiTrash2, FiEdit2,
-  FiPlus, FiX, FiGrid, FiUserMinus, FiUserPlus
+  FiPlus, FiX, FiGrid, FiUserMinus, FiUserPlus,
+  FiCheck, FiClock, FiFilter
 } from 'react-icons/fi'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -41,6 +42,9 @@ export default function TableManagement() {
     name: '',
     capacity: 8
   })
+
+  // Tri des tables
+  const [sortMode, setSortMode] = useState('name-asc')
 
   useEffect(() => {
     loadData()
@@ -211,6 +215,36 @@ export default function TableManagement() {
     await assignGuestToTable(guest, null, null)
   }
 
+  // Marquer un invité (ou son conjoint) présent / absent
+  const togglePresence = async (guest, isSpouse = false) => {
+    try {
+      const updateData = {}
+      if (isSpouse) {
+        updateData.spouseIsPresent = !guest.spouseIsPresent
+        if (!guest.spouseIsPresent) updateData.spouseCheckedInAt = new Date()
+      } else {
+        updateData.isPresent = !guest.isPresent
+        if (!guest.isPresent) updateData.checkedInAt = new Date()
+      }
+
+      await updateGuest(guest.id, updateData)
+
+      setGuests(guests.map(g =>
+        g.id === guest.id ? { ...g, ...updateData } : g
+      ))
+
+      const name = isSpouse ? guest.spouseFirstName : guest.firstName
+      const nowPresent = isSpouse ? !guest.spouseIsPresent : !guest.isPresent
+      toast.success(t('tableManagement.presenceChanged', '{{name}} marqué(e) comme {{status}}', {
+        name,
+        status: nowPresent ? t('tableManagement.present', 'Présent') : t('tableManagement.absent', 'Absent')
+      }))
+    } catch (err) {
+      console.error('Erreur changement présence:', err)
+      toast.error(t('tableManagement.presenceError', 'Erreur lors du changement de statut'))
+    }
+  }
+
   // Get guests for a specific table
   const getTableGuests = (tableId) => {
     return guests.filter(g => g.tableId === tableId)
@@ -222,6 +256,28 @@ export default function TableManagement() {
   // Stats
   const totalCapacity = tables.reduce((acc, t) => acc + (t.capacity || 0), 0)
   const assignedCount = guests.filter(g => g.tableId).length
+
+  // Tables triées selon le mode choisi (l'ordre alphabétique gère les nombres : Table 2 avant Table 10)
+  const sortedTables = [...tables].sort((a, b) => {
+    const nameA = a.name || ''
+    const nameB = b.name || ''
+    const occ = (tbl) => getTableGuests(tbl.id).reduce((acc, g) => acc + (g.ticketType === 'couple' ? 2 : 1), 0)
+    switch (sortMode) {
+      case 'name-desc':
+        return nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' })
+      case 'capacity-desc':
+        return (b.capacity || 0) - (a.capacity || 0)
+      case 'capacity-asc':
+        return (a.capacity || 0) - (b.capacity || 0)
+      case 'occupancy-desc':
+        return occ(b) - occ(a)
+      case 'occupancy-asc':
+        return occ(a) - occ(b)
+      case 'name-asc':
+      default:
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' })
+    }
+  })
 
   if (loading) return <LoadingSpinner />
 
@@ -286,11 +342,38 @@ export default function TableManagement() {
         </div>
       </div>
 
+      {/* Barre de tri */}
+      {tables.length > 0 && (
+        <div className="flex items-center justify-end gap-2 mb-4">
+          <label htmlFor="table-sort" className="text-white/80 text-sm flex items-center gap-1.5">
+            <FiFilter className="text-amber-400" />
+            {t('tableManagement.sortLabel', 'Trier les tables')}
+          </label>
+          <select
+            id="table-sort"
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value)}
+            className="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none [&>option]:text-gray-800"
+          >
+            <option value="name-asc">{t('tableManagement.sortNameAsc', 'Nom (A → Z)')}</option>
+            <option value="name-desc">{t('tableManagement.sortNameDesc', 'Nom (Z → A)')}</option>
+            <option value="capacity-desc">{t('tableManagement.sortCapacityDesc', 'Capacité (décroissante)')}</option>
+            <option value="capacity-asc">{t('tableManagement.sortCapacityAsc', 'Capacité (croissante)')}</option>
+            <option value="occupancy-desc">{t('tableManagement.sortOccupancyDesc', 'Occupation (décroissante)')}</option>
+            <option value="occupancy-asc">{t('tableManagement.sortOccupancyAsc', 'Occupation (croissante)')}</option>
+          </select>
+        </div>
+      )}
+
       {/* Tables Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {tables.map(table => {
+        {sortedTables.map(table => {
           const tableGuests = getTableGuests(table.id)
           const occupancy = tableGuests.reduce((acc, g) => acc + (g.ticketType === 'couple' ? 2 : 1), 0)
+          const presentCount = tableGuests.reduce(
+            (acc, g) => acc + (g.isPresent ? 1 : 0) + (g.ticketType === 'couple' && g.spouseIsPresent ? 1 : 0),
+            0
+          )
           const isFull = occupancy >= table.capacity
           
           return (
@@ -311,6 +394,12 @@ export default function TableManagement() {
                     {occupancy}/{table.capacity}
                   </span>
                 </div>
+                {occupancy > 0 && (
+                  <p className="mt-1 text-xs font-medium text-green-600 flex items-center gap-1">
+                    <FiCheck className="w-3 h-3" />
+                    {t('tableManagement.presentCount', '{{count}}/{{total}} présent(s)', { count: presentCount, total: occupancy })}
+                  </p>
+                )}
               </div>
               
               <div className="p-4">
@@ -323,19 +412,52 @@ export default function TableManagement() {
                     {tableGuests.map(guest => (
                       <li 
                         key={guest.id}
-                        className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2"
+                        className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2 gap-2"
                       >
-                        <span className="text-gray-700">
-                          {guest.firstName} {guest.lastName}
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                          <button
+                            onClick={() => togglePresence(guest, false)}
+                            title={guest.isPresent
+                              ? t('tableManagement.markAbsent', 'Marquer comme absent')
+                              : t('tableManagement.markPresent', 'Marquer comme présent')}
+                            aria-label={guest.isPresent
+                              ? t('tableManagement.present', 'Présent')
+                              : t('tableManagement.absent', 'Absent')}
+                            className={`shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full transition-colors ${
+                              guest.isPresent
+                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
+                            }`}
+                          >
+                            {guest.isPresent ? <FiCheck className="w-3 h-3" /> : <FiClock className="w-3 h-3" />}
+                          </button>
+                          <span className="text-gray-700 truncate">
+                            {guest.firstName} {guest.lastName}
+                          </span>
                           {guest.ticketType === 'couple' && (
-                            <span className="text-pink-500 text-xs ml-1">
-                              (+{guest.spouseFirstName})
-                            </span>
+                            <button
+                              onClick={() => togglePresence(guest, true)}
+                              title={guest.spouseIsPresent
+                                ? t('tableManagement.markAbsent', 'Marquer comme absent')
+                                : t('tableManagement.markPresent', 'Marquer comme présent')}
+                              className={`shrink-0 inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full text-xs transition-colors ${
+                                guest.spouseIsPresent
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                              }`}
+                            >
+                              <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full ${
+                                guest.spouseIsPresent ? 'bg-green-500 text-white' : 'bg-gray-300 text-white'
+                              }`}>
+                                {guest.spouseIsPresent ? <FiCheck className="w-2.5 h-2.5" /> : <FiClock className="w-2.5 h-2.5" />}
+                              </span>
+                              +{guest.spouseFirstName}
+                            </button>
                           )}
-                        </span>
+                        </div>
                         <button
                           onClick={() => removeGuestFromTable(guest)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                          className="shrink-0 p-1 text-red-500 hover:bg-red-50 rounded"
                           title={t('tableManagement.removeFromTable', 'Retirer de la table')}
                         >
                           <FiUserMinus className="w-4 h-4" />

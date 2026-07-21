@@ -2472,7 +2472,21 @@ export default {
     allGuestsSeated: 'Tous les invités sont déjà placés',
     confirmDelete: 'Confirmer la suppression',
     confirmDeleteMessage: 'Êtes-vous sûr de vouloir supprimer la table',
-    guestsWillBeUnassigned: 'Les invités assignés à cette table seront marqués comme "non placés".'
+    guestsWillBeUnassigned: 'Les invités assignés à cette table seront marqués comme "non placés".',
+    present: 'Présent',
+    absent: 'Absent',
+    markPresent: 'Marquer comme présent',
+    markAbsent: 'Marquer comme absent',
+    presenceChanged: '{{name}} marqué(e) comme {{status}}',
+    presenceError: 'Erreur lors du changement de statut',
+    presentCount: '{{count}}/{{total}} présent(s)',
+    sortLabel: 'Trier les tables',
+    sortNameAsc: 'Nom (A → Z)',
+    sortNameDesc: 'Nom (Z → A)',
+    sortCapacityDesc: 'Capacité (décroissante)',
+    sortCapacityAsc: 'Capacité (croissante)',
+    sortOccupancyDesc: 'Occupation (décroissante)',
+    sortOccupancyAsc: 'Occupation (croissante)'
   },
 
   // QR Scanner

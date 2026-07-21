@@ -2680,7 +2680,21 @@ export default {
     allGuestsSeated: 'All guests are already seated',
     confirmDelete: 'Confirm deletion',
     confirmDeleteMessage: 'Are you sure you want to delete the table',
-    guestsWillBeUnassigned: 'Guests assigned to this table will be marked as "not seated".'
+    guestsWillBeUnassigned: 'Guests assigned to this table will be marked as "not seated".',
+    present: 'Present',
+    absent: 'Absent',
+    markPresent: 'Mark as present',
+    markAbsent: 'Mark as absent',
+    presenceChanged: '{{name}} marked as {{status}}',
+    presenceError: 'Error while changing status',
+    presentCount: '{{count}}/{{total}} present',
+    sortLabel: 'Sort tables',
+    sortNameAsc: 'Name (A → Z)',
+    sortNameDesc: 'Name (Z → A)',
+    sortCapacityDesc: 'Capacity (descending)',
+    sortCapacityAsc: 'Capacity (ascending)',
+    sortOccupancyDesc: 'Occupancy (descending)',
+    sortOccupancyAsc: 'Occupancy (ascending)'
   },
 
   // QR Scanner

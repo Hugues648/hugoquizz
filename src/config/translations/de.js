@@ -2468,7 +2468,21 @@ export default {
     allGuestsSeated: 'Alle Gäste sind bereits platziert',
     confirmDelete: 'Löschung bestätigen',
     confirmDeleteMessage: 'Sind Sie sicher, dass Sie den Tisch löschen möchten',
-    guestsWillBeUnassigned: 'Gäste an diesem Tisch werden als "nicht platziert" markiert.'
+    guestsWillBeUnassigned: 'Gäste an diesem Tisch werden als "nicht platziert" markiert.',
+    present: 'Anwesend',
+    absent: 'Abwesend',
+    markPresent: 'Als anwesend markieren',
+    markAbsent: 'Als abwesend markieren',
+    presenceChanged: '{{name}} als {{status}} markiert',
+    presenceError: 'Fehler beim Ändern des Status',
+    presentCount: '{{count}}/{{total}} anwesend',
+    sortLabel: 'Tische sortieren',
+    sortNameAsc: 'Name (A → Z)',
+    sortNameDesc: 'Name (Z → A)',
+    sortCapacityDesc: 'Kapazität (absteigend)',
+    sortCapacityAsc: 'Kapazität (aufsteigend)',
+    sortOccupancyDesc: 'Belegung (absteigend)',
+    sortOccupancyAsc: 'Belegung (aufsteigend)'
   },
 
   // QR Scanner

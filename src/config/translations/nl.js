@@ -2345,7 +2345,21 @@ export default {
     allGuestsSeated: 'Alle gasten zijn al geplaatst',
     confirmDelete: 'Verwijdering bevestigen',
     confirmDeleteMessage: 'Weet u zeker dat u de tafel wilt verwijderen',
-    guestsWillBeUnassigned: 'Gasten aan deze tafel worden gemarkeerd als "niet geplaatst".'
+    guestsWillBeUnassigned: 'Gasten aan deze tafel worden gemarkeerd als "niet geplaatst".',
+    present: 'Aanwezig',
+    absent: 'Afwezig',
+    markPresent: 'Markeren als aanwezig',
+    markAbsent: 'Markeren als afwezig',
+    presenceChanged: '{{name}} gemarkeerd als {{status}}',
+    presenceError: 'Fout bij het wijzigen van de status',
+    presentCount: '{{count}}/{{total}} aanwezig',
+    sortLabel: 'Tafels sorteren',
+    sortNameAsc: 'Naam (A → Z)',
+    sortNameDesc: 'Naam (Z → A)',
+    sortCapacityDesc: 'Capaciteit (aflopend)',
+    sortCapacityAsc: 'Capaciteit (oplopend)',
+    sortOccupancyDesc: 'Bezetting (aflopend)',
+    sortOccupancyAsc: 'Bezetting (oplopend)'
   },
 
   // QR Scanner
